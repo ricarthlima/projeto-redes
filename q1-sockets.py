@@ -74,6 +74,96 @@ class ServerUDP:
         self.__socket.sendto(msg,(ip,self.__porta))
         print("CLIENT UDP: Mensagem enviada para",str(ip)+".")
         
- 
+
+class ClientTCP:
+    ''' Cliente TCP.
+        O IP é o de destino.
+    '''
+    def __init__(self, ip = "localhost", porta = 6000):
+        self.__ip = ip
+        self.__porta = porta
+        self.__socket = socket(AF_INET, SOCK_STREAM)
+        print("CLIENT TCP: Cliente iniciado.")
+
+    def getIP(self):
+        return self.__ip
+
+    def getPorta(self):
+        return self.__porta
+
+    def getSocket(self):
+        return self.__socket
+
+    def setIP(self, ip):
+        self.__ip = ip
+
+    def setPorta(self, porta):
+        self.__porta = porta
+
+    def connect(self):
+        print("CLIENT TCP: Conectando à", str(self.__ip), ":", str(self.__porta)+".")
+        self.__socket.connect((self.__ip,self.__porta))
+        print("CLIENT TCP: Conectado!")
+
+    def send(self,msg):
+        self.__socket.send(msg.encode())
+        print("CLIENT TCP: Mensagem enviada para",str(self.__ip)+":"+str(self.__porta)+"!")
+
+    def listen(self):
+        print("CLIENT TCP: Aguardando mensagem de", str(self.__ip) +":"+ str(self.__porta) + ".")
+        msg = self.__socket.recv(1024)
+        print("CLIENT TCP: Mensagem recebida.")
+        return msg.decode()
+
+    def close(self):
+        self.__socket.close()
+        print("CLIENT TCP: Conexão encerrada.")
     
+    
+class ServerTCP:
+    ''' Servidor TCP, as conexões ficam salvas em um dicionário.
+    '''
+    def __init__(self, porta = 6000, conMax = 2):
+        self.__porta = porta
+        self.__conMax = 2
+        self.__conexoes = {}
+        
+        self.__socket = socket(AF_INET, SOCK_STREAM)
+        self.__socket.bind(('',self.__porta))
+        print("SERVER TCP: Servidor iniciado.")
+
+    def getPorta(self):
+        return self.__porta
+
+    def setPorta(self,porta):
+        self.__porta = porta
+
+    def getMax(self):
+        return self.__conMax
+
+    def setMax(self, conMax):
+        self.__conMax = conMax
+
+    def listenConections(self):
+        print("SERVER TCP: Ouvindo na porta",str(self.__porta)+".")
+        self.__socket.listen(self.__conMax)
+        conexao, adr = self.__socket.accept()
+        self.__conexoes[adr] = conexao
+        return adr
+
+    def listenFrom(self,adr):
+        print("SERVER TCP: Comunicando-se com",str(adr)+".")
+        msg = self.__conexoes[adr].recv(1024)
+        print("SERVER TCP: Mensagem recebida!")
+        return msg.decode()
+
+    def sendTo(self,msg,adr):
+        self.__conexoes[adr].send(msg.encode())
+        print("SERVER TCP: Mensagem envida!")
+    
+
+
+
+
+
     
