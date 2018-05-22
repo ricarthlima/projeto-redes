@@ -1,5 +1,8 @@
-# projeto-redes
+﻿# projeto-redes
 ## Diário de Bordo
+
+### 21/05/2018
+Foi feita uma redocumentação nas classes UDP, adicionou-se as classes TCP.
 
 ### 28/04/2018
 O código que já existia foi adaptado para usar POO. A verificação de palíndromo foi retirada.
