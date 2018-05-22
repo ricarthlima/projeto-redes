@@ -1,4 +1,4 @@
-# projeto-redes
+# Projeto de Redes
 ## Diário de Bordo
 
 ### 21/05/2018
