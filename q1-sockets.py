@@ -1,14 +1,18 @@
 from socket import *
 
+IPV4 = AF_INET
+UDP = SOCK_DGRAM
+TCP = SOCK_STREAM
+
 class ClientUDP:
     ''' Cliente UDP.
-        O IP armazenado é o IP de destino.
+        O IP e a porta se referem ao do Servidor!
     '''
     
     def __init__(self,ipdest = "localhost", porta = 5000):
         self.__ip = ipdest
         self.__porta = porta
-        self.__socket = socket(AF_INET,SOCK_DGRAM)
+        self.__socket = socket(IPV4,UDP)
         print("CLIENT UDP: Cliente Iniciado.")
 
     def getIP(self):
@@ -33,7 +37,7 @@ class ClientUDP:
         print("CLIENT UDP: Mensagem enviada.")
 
     def listen(self):
-        print("CLIENT UDP: Ouvindo na porta",str(self.__porta)+".")
+        print("CLIENT UDP: Aguardando mensagem.") #Se eu tiver como descobrir meu IP e Porta, substitiuir.
         msg, adr = self.__socket.recvfrom(1024)
         print("CLIENT UDP: Mensagem recebida de",str(adr)+".")
         msg = msg.decode()
@@ -45,10 +49,11 @@ class ClientUDP:
 
 class ServerUDP:
     ''' Servidor UDP.
+        A porta é a ser definida para o servidor.
     '''
     def __init__(self,porta = 5000):
         self.__porta = porta
-        self.__socket = socket(AF_INET,SOCK_DGRAM)
+        self.__socket = socket(IPV4,UDP)
         self.__socket.bind(('',self.__porta))
         print("SERVER UDP: Server Iniciado.")
 
@@ -69,20 +74,20 @@ class ServerUDP:
         msg = msg.decode()
         return (msg, adr)
 
-    def send(self,msg,ip):
+    def send(self,msg,ip,porta):
         msg = msg.encode()
-        self.__socket.sendto(msg,(ip,self.__porta))
+        self.__socket.sendto(msg,(ip,porta))
         print("CLIENT UDP: Mensagem enviada para",str(ip)+".")
         
 
 class ClientTCP:
     ''' Cliente TCP.
-        O IP é o de destino.
+        O IP e a porta se referem ao do Servidor!
     '''
     def __init__(self, ip = "localhost", porta = 6000):
         self.__ip = ip
         self.__porta = porta
-        self.__socket = socket(AF_INET, SOCK_STREAM)
+        self.__socket = socket(IPV4, TCP)
         print("CLIENT TCP: Cliente iniciado.")
 
     def getIP(self):
@@ -121,14 +126,14 @@ class ClientTCP:
     
     
 class ServerTCP:
-    ''' Servidor TCP, as conexões ficam salvas em um dicionário.
+    ''' Servidor TCP, as conexões ficam salvas em um dicionário. A porta é a de destino.
     '''
     def __init__(self, porta = 6000, conMax = 2):
         self.__porta = porta
         self.__conMax = 2
         self.__conexoes = {}
         
-        self.__socket = socket(AF_INET, SOCK_STREAM)
+        self.__socket = socket(IPV4, TCP)
         self.__socket.bind(('',self.__porta))
         print("SERVER TCP: Servidor iniciado.")
 
@@ -160,7 +165,20 @@ class ServerTCP:
     def sendTo(self,msg,adr):
         self.__conexoes[adr].send(msg.encode())
         print("SERVER TCP: Mensagem envida!")
-    
+
+class ClientHTTP:
+    def __init__(self,server,time = 2):
+        self.__server = server
+        self.__conexao = http.client.HTTPConnection(self.__server,timeout = time)
+        
+    def sendGET(self,repositorio):
+        print("CLIENT HTTP:",repositorio,"solicitado.")
+        self.__conexao.request('GET',repositorio)
+        res = self.__conexao.getresponse()
+        print("CLIENT HTTP: Código de resposta -",res.getcode())
+        if res.getcode() == 200:
+            print("CLIENT HTTP:")
+            return res.read().decode()
 
 
 
