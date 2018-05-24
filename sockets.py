@@ -1,3 +1,17 @@
+#----------------------------------------------------------------------------------------------#
+# Universidade Federal de Pernambuco -- UFPE (http://www.ufpe.br)
+# Centro de Informática -- CIn (http://www.cin.ufpe.br)
+# Graduandos em Sistemas de Informação
+# IF975 - Redes de Computadores
+#
+# Autores: Ricarth Ruan da Silva Lima e Monalisa Meyrelle de Sousa Silva
+# Email: rrsl@cin.ufpe.br // mmss@cin.ufpe.br
+# Data:	2018-05-2018
+#
+# Descrição: Arquivo com classes clientes e servidores para conexões TCP e UDP. Basicamente uma
+# camada acima de uso de sockets. Esse arquivo será usado em todos os outros daqui em diante.
+#----------------------------------------------------------------------------------------------#
+
 from socket import *
 
 IPV4 = AF_INET
@@ -165,23 +179,3 @@ class ServerTCP:
     def sendTo(self,msg,adr):
         self.__conexoes[adr].send(msg.encode())
         print("SERVER TCP: Mensagem envida!")
-
-class ClientHTTP:
-    def __init__(self,server,time = 2):
-        self.__server = server
-        self.__conexao = http.client.HTTPConnection(self.__server,timeout = time)
-        
-    def sendGET(self,repositorio):
-        print("CLIENT HTTP:",repositorio,"solicitado.")
-        self.__conexao.request('GET',repositorio)
-        res = self.__conexao.getresponse()
-        print("CLIENT HTTP: Código de resposta -",res.getcode())
-        if res.getcode() == 200:
-            print("CLIENT HTTP:")
-            return res.read().decode()
-
-
-
-
-
-    
