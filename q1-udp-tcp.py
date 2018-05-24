@@ -55,7 +55,7 @@ class ClientUDP:
         msg, adr = self.__socket.recvfrom(1024)
         print("CLIENT UDP: Mensagem recebida de",str(adr)+".")
         msg = msg.decode()
-        return (msg, adr)
+        return msg
 
     def close(self):
         self.__socket.close()
@@ -179,3 +179,94 @@ class ServerTCP:
     def sendTo(self,msg,adr):
         self.__conexoes[adr].send(msg.encode())
         print("SERVER TCP: Mensagem envida!")
+
+ 
+
+def cUDP():
+    ip = input("A qual IP deseja conectar-se? (Vazio para padrão)\n> ")
+    while True:
+        porta = input("Em qual porta? (Vazio para padrão)\n> ")
+        if porta.isdigit():
+            porta = int(porta)
+            break
+        elif porta == '':
+            break
+        else:
+            pass
+
+    clt = None
+
+    if ip == '':
+        clt = ClientUDP()
+    elif porta == '':
+        clt = ClientUDP(ip)
+    else:
+        clt = ClientUDP(ip,porta)
+        
+    print("Digite 'quit' para sair")
+    
+    inp = ""
+    while inp != "quit":
+        inp = input("SEND > ")
+        if inp != "quit":
+            clt.send(inp)
+            print(clt.listen())
+
+    clt.send(inp)
+    clt.close()
+
+def sUDP():
+    clt = None
+    
+    while True:
+        porta = input("Qual porta deseja reservar? (Vazio para padrão)\n> ")
+        if porta.isdigit():
+            porta = int(porta)
+            clt = ServerUPD(porta)
+            break
+        elif porta == '':
+            clt = ServerUDP()
+            break
+        else:
+            pass
+
+    resp = clt.listen()
+    print(resp[0])
+
+    while True:
+        clt.send(input("SEND > "),resp[1][0],resp[1][1])
+        
+        resp = clt.listen()
+        if resp[0] == "quit":
+            break
+        else:
+            print(resp[0])
+
+    
+
+def cTCP():
+    return
+def sTCP():
+    return
+
+if __name__ == "__main__":
+    print("Você é um cliente ou um servidor?\n1.Cliente\n2.Servidor")
+    inp = ""
+    while inp != "1" and inp != "2":
+        inp = input("> ")
+
+    print("A conexão será UDP ou TCP?\n1.UDP\n2.TCP")
+    con = ""
+    while con != "1" and con != "2":
+        con = input("> ")
+
+    if inp == "1":
+        if con == "1":
+            cUDP()
+        else:
+            cTCP()
+    else:
+        if con == "1":
+            sUDP()
+        else:
+            sTCP()
