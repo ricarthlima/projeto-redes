@@ -13,11 +13,14 @@
 #----------------------------------------------------------------------------------------------#
 
 from socket import *
+import time
 
 IPV4 = AF_INET
 UDP = SOCK_DGRAM
 TCP = SOCK_STREAM
 
+
+#2. CLASSES PARA MODULARIZAÇÃO/PADRONIZAÇÃO DO USO DE SOCKETS
 class ClientUDP:
     ''' Cliente UDP.
         O IP e a porta se referem ao do Servidor!
@@ -92,6 +95,9 @@ class ServerUDP:
         msg = msg.encode()
         self.__socket.sendto(msg,(ip,porta))
         print("CLIENT UDP: Mensagem enviada para",str(ip)+".")
+
+    def close(self):
+        self.__socket.close()
         
 
 class ClientTCP:
@@ -163,7 +169,7 @@ class ServerTCP:
     def setMax(self, conMax):
         self.__conMax = conMax
 
-    def listenConections(self):
+    def listenConnections(self):
         print("SERVER TCP: Ouvindo na porta",str(self.__porta)+".")
         self.__socket.listen(self.__conMax)
         conexao, adr = self.__socket.accept()
@@ -180,22 +186,14 @@ class ServerTCP:
         self.__conexoes[adr].send(msg.encode())
         print("SERVER TCP: Mensagem envida!")
 
+    def close(self):
+        self.__socket.close()
+
  
-
-def cUDP():
-    ip = input("A qual IP deseja conectar-se? (Vazio para padrão)\n> ")
-    while True:
-        porta = input("Em qual porta? (Vazio para padrão)\n> ")
-        if porta.isdigit():
-            porta = int(porta)
-            break
-        elif porta == '':
-            break
-        else:
-            pass
-
+#FUNÇÕES DE ENTRADA/SAÍDA DO USUÁRIO
+def cUDP(ip,porta): 
     clt = None
-
+    
     if ip == '':
         clt = ClientUDP()
     elif porta == '':
@@ -216,38 +214,102 @@ def cUDP():
     clt.close()
 
 def sUDP():
-    clt = None
+    server = None
     
     while True:
         porta = input("Qual porta deseja reservar? (Vazio para padrão)\n> ")
         if porta.isdigit():
             porta = int(porta)
-            clt = ServerUPD(porta)
+            server = ServerUPD(porta)
             break
         elif porta == '':
-            clt = ServerUDP()
+            server = ServerUDP()
             break
         else:
             pass
 
-    resp = clt.listen()
+    resp = server.listen()
     print(resp[0])
 
     while True:
-        clt.send(input("SEND > "),resp[1][0],resp[1][1])
+        server.send(input("SEND > "),resp[1][0],resp[1][1])
         
-        resp = clt.listen()
+        resp = server.listen()
         if resp[0] == "quit":
             break
         else:
             print(resp[0])
 
+    server.close()
+
     
 
-def cTCP():
-    return
+def cTCP(ip,porta):
+    clt = None
+    
+    if ip == '':
+        clt = ClientTCP()
+    elif porta == '':
+        clt = ClientTCP(ip)
+    else:
+        clt = ClientTCP(ip,porta)
+
+    input("Conectar?")
+
+    i = 0
+    while True:
+        try:
+            clt.connect()
+            break
+        except:
+            if i < 10:
+                time.sleep(5)
+                i = i + 1
+            else:
+                return "Não foi possível conectar-se ao servidor."
+
+    print("Digite 'quit' para sair")
+    
+    inp = ""
+    while inp != "quit":
+        inp = input("SEND > ")
+        if inp != "quit":
+            clt.send(inp)
+            print(clt.listen())
+
+    clt.send(inp)
+    clt.close()
+            
+        
+
 def sTCP():
-    return
+    server = None
+    
+    while True:
+        porta = input("Qual porta deseja reservar? (Vazio para padrão)\n> ")
+        if porta.isdigit():
+            porta = int(porta)
+            server = ServerTCP(porta,1)
+            break
+        elif porta == '':
+            server = ServerTCP(6000,1)
+            break
+        else:
+            pass
+
+
+    adr = server.listenConnections()
+
+    while True:
+        msg = server.listenFrom(adr)
+        if msg != "quit":
+            print(msg)
+            server.sendTo(input("SEND > "),adr)
+        else:
+            break
+
+    server.close()
+    
 
 if __name__ == "__main__":
     print("Você é um cliente ou um servidor?\n1.Cliente\n2.Servidor")
@@ -261,10 +323,20 @@ if __name__ == "__main__":
         con = input("> ")
 
     if inp == "1":
+        ip = input("A qual IP deseja conectar-se? (Vazio para padrão)\n> ")
+        while True:
+            porta = input("Em qual porta? (Vazio para padrão)\n> ")
+            if porta.isdigit():
+                porta = int(porta)
+                break
+            elif porta == '':
+                break
+            else:
+                pass
         if con == "1":
-            cUDP()
+            cUDP(ip,porta)
         else:
-            cTCP()
+            cTCP(ip,porta)
     else:
         if con == "1":
             sUDP()
