@@ -1,6 +1,8 @@
 # Projeto de Redes
 ## Diário de Bordo
 
+### 28/05/2018
+Iniciado o desenvolvimento da questão 02. Começamos com o estudo de threads usando a biblioteca (legado) _thread_. Depois foi construida a estrutura de código do servidor, onde depois as funções serão desenvolvidas. Também foi mais definido de quem serão os papeis de entre o servidor e cliente.
 
 ### 24/05/2018
 A parte de TCP e UDP da questão 1 se dará por um simples comunicador Cliente-Servidor, onde cada um deve esperar sua vez de falar. A parte HTTP será feita separadamente. Começou-se o estudo de Threads para as próximas questões.
