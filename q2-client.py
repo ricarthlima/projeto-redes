@@ -1,29 +1,44 @@
-from sockets import *
+from socket import *
 
-SERVER_IP_ERROR = "ERRO C01 - IP de Servidor Inválido"
+def comandos(skt):
+    while True:
+        skt.send(input("cmd > ").encode())
+        print(skt.recv(5000))
 
-def userTCP():
-    client = None
-
-    while client == None:
-        ip = input("Insira o IP do servidor:\n> ")
-        try:
-            client = ClientTCP(ip)
-            client.connect()
-            break
-        except:
-            client = None
-            print(SERVER_IP_ERROR)
-            pass
-
+def auth(skt):
+    login = input("Insira o login:\n> ")
+    skt.send(login.encode())
+    msg = skt.recv(1024).decode()
+    if msg == "02LOGINOK":
+        senha = input("Insira a senha:\n> ")
+        skt.send(senha.encode())
+        msg = skt.recv(1024).decode()
+        if msg == "03AUTHOK":
+            comandos(skt)
+            return
+    print("A autenticação falhou.")
+    skt.close()
+    return    
     
-
-    
-
 def main():
-    print("- HELO Messenger -")
+    ip = input("IP:\n> ")
+    if ip == "": ip = "localhost"
+    porta = input("Porta:\n> ")
+    if porta =="": porta = 6000
+    else: porta = int(porta)
 
-    userTCP()
+    skt = socket(AF_INET,SOCK_STREAM)
+    skt.connect((ip,porta))
+    msg = skt.recv(1024).decode()
+
+    if msg == "01HELLO":
+        print("Conectado.")
+        auth(skt)
+        return
+    else:
+        print("Ocorreu um erro de conexão")
+        skt.close()
+        return
 
 
 if __name__ == "__main__":

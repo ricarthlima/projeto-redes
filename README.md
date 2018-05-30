@@ -1,5 +1,8 @@
-# Projeto de Redes
+﻿# Projeto de Redes
 ## Diário de Bordo
+
+### 29/05/2018
+Implementada a autenticação nos arquivos da questão 02.
 
 ### 28/05/2018
 Iniciado o desenvolvimento da questão 02. Começamos com o estudo de threads usando a biblioteca (legado) _thread_. Depois foi construida a estrutura de código do servidor, onde depois as funções serão desenvolvidas. Também foi mais definido de quem serão os papeis de entre o servidor e cliente.
