@@ -160,14 +160,21 @@ def newCommandChecker(conexao,adr,login,bd):
             print("CMD - Arquivo recebido.",adr)           
 
             #Etapa 04 - Gravar o arquivo
-            file = open("./arqs/"+login+"/"+diretorio+"/"+nome,"bw")
-            file.write(arq)
-            file.close()
+            fail = False
+            try:
+                file = open("./arqs/"+login+"/"+diretorio+"/"+nome,"bw")
+                file.write(arq)
+                file.close()
 
-            appendDir(login,diretorio+nome)
+                appendDir(login,diretorio+nome)
+            except:
+                fail = True
             
             #Etapa 05 - Confirmação
-            conexao.send("05ARQOK".encode())
+            if fail == False:
+                conexao.send("05ARQOK".encode())
+            else:
+                conexao.send("05ARQFAIL".encode())
             
         elif cmd == "DELETE":
             return
@@ -192,6 +199,8 @@ def main():
     
     _thread.start_new_thread(newConnectionChecker,(skt,bd))
     print("SERVER INICIADO")
+    while True:
+        continue
 
 
 if __name__ == "__main__":

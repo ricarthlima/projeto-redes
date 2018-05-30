@@ -22,22 +22,30 @@ def comandos(skt):
         elif cmd == "GET":
             return
         elif cmd == "POST":
-            file = open(carga[0],"br")   #Vamos ler o arquivo origem.
-            arq = file.read()
-            file.close()
+            arqok = False
+            try:
+                file = open(carga[0],"br")   #Vamos ler o arquivo origem.
+                arq = file.read()
+                file.close()
+                arqok = True
+            except:
+                print("Arquivo não encontrado.")
 
-            nome = inverteBarra(carga[0]).split("/")[-1]
+            if arqok:
+                nome = inverteBarra(carga[0]).split("/")[-1]
 
-            #Etapa 01 - Envio do comando e do nome do arquivo
-            skt.send(("POST "+nome).encode())
-            if "05NAMEOK" == (skt.recv(1024).decode()):
-                #Etapa 02 - Envio do diretorio em server do arquivo
-                skt.send(carga[1].encode())
-                if "05DIROK" == (skt.recv(1024).decode()):
-                    #Etapa 03 - Enviar o arquivo
-                    skt.send(arq)
-                    if "05ARQOK" == (skt.recv(1024).decode()):
-                        print("Arquivo transferido.")
+                #Etapa 01 - Envio do comando e do nome do arquivo
+                skt.send(("POST "+nome).encode())
+                if "05NAMEOK" == (skt.recv(1024).decode()):
+                    #Etapa 02 - Envio do diretorio em server do arquivo
+                    skt.send(carga[1].encode())
+                    if "05DIROK" == (skt.recv(1024).decode()):
+                        #Etapa 03 - Enviar o arquivo
+                        skt.send(arq)
+                        if "05ARQOK" == (skt.recv(1024).decode()):
+                            print("Arquivo transferido.")
+                        else:
+                            print("Diretório não encontrado.")
         elif cmd == "DELETE":
             return
         elif cmd == "SHARE":
