@@ -1,6 +1,12 @@
 ﻿# Projeto de Redes
 ## Diário de Bordo
 
+### 30/05/2018
+Implementados os comandos POST e DELETE na questão 02.
+Algumas ponderações sobre o POST.
+- A transferência de arquivos ainda apresenta bugs, como os relacionados ao tamanho do arquivo, que fazem ele ir para o próximo recv.
+- Não verifica se o arquivo já existe na nuvem (POST também está sendo PUT)
+
 ### 29/05/2018
 Implementada a autenticação nos arquivos da questão 02.
 

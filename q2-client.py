@@ -38,7 +38,10 @@ def comandos(skt):
                 skt.send(("POST "+nome).encode())
                 if "05NAMEOK" == (skt.recv(1024).decode()):
                     #Etapa 02 - Envio do diretorio em server do arquivo
-                    skt.send(carga[1].encode())
+                    if len(carga) > 1:
+                        skt.send(carga[1].encode())
+                    else:
+                        skt.send("/".encode())
                     if "05DIROK" == (skt.recv(1024).decode()):
                         #Etapa 03 - Enviar o arquivo
                         skt.send(arq)
@@ -46,13 +49,26 @@ def comandos(skt):
                             print("Arquivo transferido.")
                         else:
                             print("Diretório não encontrado.")
+                            
         elif cmd == "DELETE":
-            return
+            diretorio = inverteBarra(carga[0])
+            skt.send(("DELETE "+diretorio).encode())
+            if "05DELOK" == (skt.recv(1024).decode()):
+                print("Arquivo deletado.")
+            else:
+                print("Houve um erro ao deletar o arquivo.")
         elif cmd == "SHARE":
             return
         elif cmd == "QUIT":
             skt.send("QUIT".encode())
             return
+        elif cmd == "HELP" or cmd == "?":
+            print("\nLS - Retorna lista de diretórios.\n")
+            print("GET <diretorio> - Retorna o arquivo no diretório na nuvem especificado.\n")
+            print("POST <diretorio_origem> <diretório_destino> - Faz upload do arquivo no diretório na nuvem.\n")
+            print("DELETE <diretorio> - Exclue o arquivo no diretório na nuvem.\n")
+            print("SHARE <diretorio_nuvem> <login_dest> - Compartilha um arquivo com outro usuário.\n")
+            print("QUIT - Encerra a conexão.\n")
         else:
             print("Comando incorreto.")       
                 

@@ -60,9 +60,29 @@ class BancoDados:
 
     def autenticar(self,login,senha):
         return senha == self.__cadastrados[login][1]
+
+    def listarDir(self,login):
+        #Retorna uma lista com os diretorios do usuario
+        if login in self.__cadastrados:
+            file = open("./lists/"+login+".txt","r")
+            texto = file.read()
+            file.close()
+
+            return texto.split("\n")[1:]
+        else:
+            return False
     
     def __contains__(self,user):
         return user in self.__cadastrados
+
+    def deletar(self,login,delLinha):
+        linhas = self.listarDir(login)
+        file = open("./lists/"+login+".txt","w")
+        file.write("Diretorio de "+login+".")
+        for linha in linhas:
+            if linha != delLinha:
+                file.write(linha)
+        file.close()
 
 #FUNÇÕES DA REDE
 def newConnectionChecker(skt,bd):    
@@ -127,8 +147,7 @@ def newCommandChecker(conexao,adr,login,bd):
                 texto = file.read()
                 file.close()
             except:
-                texto = "Diretório vazio."
-            print(texto)  
+                texto = "Diretório vazio." 
             conexao.send(texto.encode())
         elif cmd == "GET":
             return
@@ -156,7 +175,7 @@ def newCommandChecker(conexao,adr,login,bd):
             '''
             
             #Etapa 03 - Receber o arquivo            
-            arq = conexao.recv(4294967296)            
+            arq = conexao.recv(1048576)            
             print("CMD - Arquivo recebido.",adr)           
 
             #Etapa 04 - Gravar o arquivo
@@ -177,7 +196,16 @@ def newCommandChecker(conexao,adr,login,bd):
                 conexao.send("05ARQFAIL".encode())
             
         elif cmd == "DELETE":
-            return
+            print("CMD - Solicitação de remoção de arquivo.",adr)
+            if carga[0] in bd.listarDir(login):
+                os.remove("./arqs/"+login+carga[0])
+                print("CMD - Arquivo deletado.",adr)
+                bd.deletar(login,carga[0])
+                print("CMD - Lista de arquivos atualizada.",adr)
+                conexao.send("05DELOK".encode())
+            else:
+                conexao.send("05DELFAIL".encode())
+            
         elif cmd == "PUT":
             return
         elif cmd == "SHARE":
@@ -188,8 +216,7 @@ def newCommandChecker(conexao,adr,login,bd):
             print("CMD - Conexão com",str(adr),"encerrada.")
             break
         else:
-            #Mensagem de erro
-            return
+            print("CMD - Comando incorreto recebido de",adr)
         
 def main():
     bd = BancoDados()
