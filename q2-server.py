@@ -6,6 +6,9 @@ IPV4 = AF_INET
 UDP = SOCK_DGRAM
 TCP = SOCK_STREAM
 
+MSG_BUFFER = 1024
+FILE_BUFFER = 1048576
+
 class BancoDados:
     def __init__(self):
         self.__cadastrados = {}
@@ -96,11 +99,11 @@ def newConnectionChecker(skt,bd):
         print("NCC - Nova conexão com",str(adr))
         conexao.send("01HELLO".encode())
         
-        login = conexao.recv(1024).decode() #Recebe o login
+        login = conexao.recv(MSG_BUFFER).decode() #Recebe o login
         print("NCC - Novo login recebido de,",str(adr),". Aguardando senha.")
         conexao.send("02LOGINOK".encode())
         
-        senha = conexao.recv(1024).decode() #Recebe a senha
+        senha = conexao.recv(MSG_BUFFER).decode() #Recebe a senha
         print("NCC - Senha recebida de,",str(adr))
 
         auth(login,senha,conexao,adr,bd)
@@ -134,7 +137,7 @@ def appendDir(login,diretorio):
 def newCommandChecker(conexao,adr,login,bd):
     #Thread para receber comandos
     while True:
-        msg = conexao.recv(1024).decode()
+        msg = conexao.recv(MSG_BUFFER).decode()
             
         cmd = msg.split(" ")[0].upper()
         carga = msg.split(" ") [1:]
@@ -165,7 +168,7 @@ def newCommandChecker(conexao,adr,login,bd):
                 conexao.send(arq)
 
                 #Etapa 03 - Confirmação
-                if "C05RECVOK" == conexao.recv(1024).decode():
+                if "C05RECVOK" == conexao.recv(MSG_BUFFER).decode():
                     print("CMD - O envio foi concluído.",adr)
                 else:
                     print("CMD - Envio falhou.",adr)
@@ -179,12 +182,20 @@ def newCommandChecker(conexao,adr,login,bd):
             print("CMD - Solicitação de transferencia de arquivo recebida.",adr)
 
             #Etapa 02 - Receber o diretório e se preparar para receber arquivo
-            diretorio = conexao.recv(1024).decode()
+            diretorio = conexao.recv(MSG_BUFFER).decode()
             conexao.send("05DIROK".encode())
             print("CMD - Diretório recebido, aguardando arquivo.",adr)
                        
-            #Etapa 03 - Receber o arquivo            
-            arq = conexao.recv(1048576)            
+            #Etapa 03 - Receber o arquivo
+            conexao.settimeout(1)
+            arq = bytes()
+            while True:
+                try:
+                    dados = conexao.recv(FILE_BUFFER)
+                    arq = arq + dados
+                except:
+                    break
+            conexao.settimeout(None)
             print("CMD - Arquivo recebido.",adr)           
 
             #Etapa 04 - Gravar o arquivo

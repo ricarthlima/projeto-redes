@@ -1,5 +1,9 @@
 from socket import *
 
+DEFAULT_TIMEOUT = 10
+MSG_BUFFER = 1024
+FILE_BUFFER = 1048576
+
 def inverteBarra(string):
     nova = ""
     for letra in string:
@@ -22,16 +26,16 @@ def comandos(skt):
         elif cmd == "GET":
             #Etapa 01 - Eniva a solicitação, aguarda resposta
             skt.send(("GET "+inverteBarra(carga[0])).encode())
-            if "05DIROK" == (skt.recv(1024).decode()):
+            if "05DIROK" == (skt.recv(MSG_BUFFER).decode()):
                 skt.settimeout(1)
                 arq = bytes()                
                 while True:
                     try:
-                        dados = skt.recv(32768)
+                        dados = skt.recv(FILE_BUFFER)
                         arq = arq + dados
                     except:
                         break
-                skt.settimeout(None)
+                skt.settimeout(DEFAULT_TIMEOUT)
                 
                 nome = inverteBarra(carga[0]).split("/")[-1]
 
@@ -58,16 +62,16 @@ def comandos(skt):
 
                 #Etapa 01 - Envio do comando e do nome do arquivo
                 skt.send(("POST "+nome).encode())
-                if "05NAMEOK" == (skt.recv(1024).decode()):
+                if "05NAMEOK" == (skt.recv(MSG_BUFFER).decode()):
                     #Etapa 02 - Envio do diretorio em server do arquivo
                     if len(carga) > 1:
                         skt.send(carga[1].encode())
                     else:
                         skt.send("/".encode())
-                    if "05DIROK" == (skt.recv(1024).decode()):
+                    if "05DIROK" == (skt.recv(MSG_BUFFER).decode()):
                         #Etapa 03 - Enviar o arquivo
                         skt.send(arq)
-                        if "05ARQOK" == (skt.recv(1024).decode()):
+                        if "05ARQOK" == (skt.recv(MSG_BUFFER).decode()):
                             print("Arquivo transferido.")
                         else:
                             print("Diretório não encontrado.")
@@ -75,7 +79,7 @@ def comandos(skt):
         elif cmd == "DELETE":
             diretorio = inverteBarra(carga[0])
             skt.send(("DELETE "+diretorio).encode())
-            if "05DELOK" == (skt.recv(1024).decode()):
+            if "05DELOK" == (skt.recv(MSG_BUFFER).decode()):
                 print("Arquivo deletado.")
             else:
                 print("Houve um erro ao deletar o arquivo.")
@@ -99,11 +103,11 @@ def auth(skt):
     print()
     login = input("login: ")
     skt.send(login.encode())
-    msg = skt.recv(1024).decode()
+    msg = skt.recv(MSG_BUFFER).decode()
     if msg == "02LOGINOK":
         senha = input("senha: ")
         skt.send(senha.encode())
-        msg = skt.recv(1024).decode()
+        msg = skt.recv(MSG_BUFFER).decode()
         if msg == "03AUTHOK":
             comandos(skt)
             return
@@ -111,37 +115,48 @@ def auth(skt):
     skt.close()
     return    
     
+def inputADDR():
+    adr = input("Server Address: ")
+    if adr == "":
+        ip = "localhost"
+        porta = 6000
+    else:
+        ip = adr.split(":")[0]
+        try:
+            porta = int(adr.split(":")[1])            
+        except:
+            print("Endereço do servidor incorreto.")
+            return False,False,False
+                
+    return True,ip,porta
+    
+
 def main():
     #Splash Text
     print("CloudRain - Client")
 
     while True:
         #Conexão
-        adr = input("Server Address: ")
-        if adr == "":
-            ip = "localhost"
-            porta = 6000
-        else:
-            ip = adr.split(":")[0]
+      
+        ver,ip,porta = inputADDR()    #Pede o endereço do servidor.
+        
+        skt = socket(AF_INET,SOCK_STREAM)
+        skt.settimeout(DEFAULT_TIMEOUT)
+        
+        if ver:
+            msg = ""
             try:
-                porta = int(adr.split(":")[1])
+                skt.connect((ip,porta))
+                msg = skt.recv(MSG_BUFFER).decode()
             except:
-                print("Endereço do servidor incorreto.")
+                print("Ocorreu um erro na conexão. Tente novamente.")
 
-        try:
-            skt = socket(AF_INET,SOCK_STREAM)
-            skt.connect((ip,porta))
-            msg = skt.recv(1024).decode()
-        except:
-            print("Ocorreu um erro na conexão. Tente novamente.")
-
-        if msg == "01HELLO":
-            print("Conectado.")
-            auth(skt)
-            break
-        else:
-            print("Ocorreu um erro de conexão")
-            skt.close()
+            if msg == "01HELLO":
+                print("Conectado.")
+                auth(skt)
+                break
+            else:
+                skt.close()
         
 
 if __name__ == "__main__":
