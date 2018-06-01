@@ -159,10 +159,6 @@ def newCommandChecker(conexao,adr,login,bd):
             print("CMD - Solicitação de remoção de arquivo.",adr)
             cmdDELETE(conexao,adr,login,bd,carga)
             
-        elif cmd == "PUT":
-            print("CMD - Solicitação de substituição de arquivo.",adr)
-            cmdPUT(conexao,adr,login,bd,carga)
-            
         elif cmd == "SHARE":
             return
         
@@ -261,14 +257,12 @@ def cmdDELETE(conexao,adr,login,bd,carga):
     else:
         conexao.send("05DELFAIL".encode())
 
-def cmdPUT(conexao,adr,login,bd,carga):
-    if cmdDELETE(conexao,adr,login,bd,[carga[0]]):
-        cmdPOST(conexao,adr,login,bd,[carga[1]])
-
 def cmdQUIT(conexao):
     conexao.send("END".encode())
     conexao.close()
-        
+
+
+#MAIN
 def main():
     bd = BancoDados()       #Inicia o banco de dados
     
@@ -276,7 +270,7 @@ def main():
     skt.bind(('',6000))     #Binda a porta
     
     _thread.start_new_thread(newConnectionChecker,(skt,bd)) #Inicia a Thread para ouvir novas conexões
-    print("CloudRain - Servidor\nServiço Online")
+    print("CloudRain - Servidor\nOnline...")
     while True:
         continue
 
