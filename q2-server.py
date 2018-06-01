@@ -183,20 +183,25 @@ def newCommandChecker(conexao,adr,login,bd):
 
             #Etapa 02 - Receber o diretório e se preparar para receber arquivo
             diretorio = conexao.recv(MSG_BUFFER).decode()
-            conexao.send("05DIROK".encode())
-            print("CMD - Diretório recebido, aguardando arquivo.",adr)
-                       
-            #Etapa 03 - Receber o arquivo
-            conexao.settimeout(1)
-            arq = bytes()
-            while True:
-                try:
-                    dados = conexao.recv(FILE_BUFFER)
-                    arq = arq + dados
-                except:
-                    break
-            conexao.settimeout(None)
-            print("CMD - Arquivo recebido.",adr)           
+            if (diretorio+nome) not in bd.listarDir(login):
+                conexao.send("05DIROK".encode())
+                print("CMD - Diretório recebido, aguardando arquivo.",adr)
+
+                           
+                #Etapa 03 - Receber o arquivo
+                conexao.settimeout(1)
+                arq = bytes()
+                while True:
+                    try:
+                        dados = conexao.recv(FILE_BUFFER)
+                        arq = arq + dados
+                    except:
+                        break
+                conexao.settimeout(None)
+                print("CMD - Arquivo recebido.",adr)
+            else:
+                conexao.send("05DUPL".encode())
+                print("CMD - Tentativa de substituição de arquivo.",adr)
 
             #Etapa 04 - Gravar o arquivo
             fail = False
@@ -227,6 +232,12 @@ def newCommandChecker(conexao,adr,login,bd):
                 conexao.send("05DELFAIL".encode())
             
         elif cmd == "PUT":
+            '''
+            print("CMD - Solicitação substituição de arquivo.",adr)
+            if carga[0] in bd.listarDir(login):
+            else:
+                conexao.send("05DIRFAIL".encode())
+            '''
             return
         elif cmd == "SHARE":
             return

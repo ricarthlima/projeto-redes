@@ -1,6 +1,9 @@
 ﻿# Projeto de Redes
 ## Diário de Bordo
 
+### 01/06/2018
+Implementado o GET da questão 02. O bug na transferencia do POST foi resolvido.
+
 ### 30/05/2018
 Implementados os comandos POST e DELETE na questão 02.
 Algumas ponderações sobre o POST.

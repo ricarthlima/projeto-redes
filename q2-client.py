@@ -75,6 +75,8 @@ def comandos(skt):
                             print("Arquivo transferido.")
                         else:
                             print("Diretório não encontrado.")
+                    else:
+                        print("Tentativa de substituição de arquivo. Experimente PUT.")
                             
         elif cmd == "DELETE":
             diretorio = inverteBarra(carga[0])
@@ -83,6 +85,28 @@ def comandos(skt):
                 print("Arquivo deletado.")
             else:
                 print("Houve um erro ao deletar o arquivo.")
+        elif cmd == "PUT":
+            '''
+            arqok = False
+            try:
+                file = open(carga[0],"br")   #Vamos ler o arquivo origem.
+                arq = file.read()
+                file.close()
+                arqok = True
+            except:
+                print("Arquivo não encontrado.")
+
+            if arqok and len(carga) > 1:
+                skt.send("PUT "+carga[1])
+                if "05DIROK" == (skt.recv(MSG_BUFFER).decode()):
+                    print("Arquivo substituido.")
+                else:
+                    print("Houve um erro ao substituir o arquivo.")
+            else:
+                print("Diretório incorreto.")
+            '''
+            return
+            
         elif cmd == "SHARE":
             return
         elif cmd == "QUIT":
@@ -92,6 +116,7 @@ def comandos(skt):
             print("\nLS - Retorna lista de diretórios.\n")
             print("GET <diretorio> - Retorna o arquivo no diretório na nuvem especificado.\n")
             print("POST <diretorio_origem> <diretório_destino> - Faz upload do arquivo no diretório na nuvem.\n")
+            print("PUT <diretorio_origem> diretorio_destino> - Substitui arquivo na nuvem.")
             print("DELETE <diretorio> - Exclue o arquivo no diretório na nuvem.\n")
             print("SHARE <diretorio_nuvem> <login_dest> - Compartilha um arquivo com outro usuário.\n")
             print("QUIT - Encerra a conexão.\n")
