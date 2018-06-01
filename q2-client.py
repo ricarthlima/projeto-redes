@@ -86,7 +86,6 @@ def comandos(skt):
             else:
                 print("Houve um erro ao deletar o arquivo.")
         elif cmd == "PUT":
-            '''
             arqok = False
             try:
                 file = open(carga[0],"br")   #Vamos ler o arquivo origem.
@@ -104,7 +103,6 @@ def comandos(skt):
                     print("Houve um erro ao substituir o arquivo.")
             else:
                 print("Diretório incorreto.")
-            '''
             return
             
         elif cmd == "SHARE":

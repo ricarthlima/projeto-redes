@@ -144,42 +144,72 @@ def newCommandChecker(conexao,adr,login,bd):
          
         if cmd == "LS":
             print("CMD - Solicitação para visualizar diretório recebida",adr)
+            cmdLS(conexao,adr,login,bd)
             
-            try:
-                file = open("./lists/"+login+".txt","r")
-                texto = file.read()
-                file.close()
-            except:
-                texto = "Diretório vazio." 
-            conexao.send(texto.encode())
         elif cmd == "GET":
             print("CMD - Solicitação de acesso à arquivo.", adr)
-
-            #Etapa 01 - Recebe o diretório e verifica se ele é válido
-            diretorio = carga[0]            
-            if diretorio in bd.listarDir(login):
-                #Etapa 02 - Leitura, quebra e envio do arquivo.
-                conexao.send("05DIROK".encode())
-
-                file = open("./arqs/"+login+diretorio,"rb")
-                arq = file.read()
-                file.close()
-                
-                conexao.send(arq)
-
-                #Etapa 03 - Confirmação
-                if "C05RECVOK" == conexao.recv(MSG_BUFFER).decode():
-                    print("CMD - O envio foi concluído.",adr)
-                else:
-                    print("CMD - Envio falhou.",adr)
-                
-            else:
-                conexao.send("05DIRFAIL".encode())
+            cmdGET(conexao,adr,login,bd,carga)
+            
         elif cmd == "POST":
-            #Etapa 01 - Receber nome 
+            print("CMD - Solicitação de transferencia de arquivo recebida.",adr)
+            cmdPOST(conexao,adr,login,bd,carga)
+            
+            
+        elif cmd == "DELETE":
+            print("CMD - Solicitação de remoção de arquivo.",adr)
+            cmdDELETE(conexao,adr,login,bd,carga)
+            
+        elif cmd == "PUT":
+            print("CMD - Solicitação de substituição de arquivo.",adr)
+            cmdPUT(conexao,adr,login,bd,carga)
+            
+        elif cmd == "SHARE":
+            return
+        
+        elif cmd == "QUIT":
+            print("CMD - Solicitação de encerramento de conexão.",adr)
+            cmdQUIT(conexao)
+            print("CMD - Conexão com",str(adr),"encerrada.")
+            break
+        else:
+            print("CMD - Comando incorreto recebido de",adr)
+
+def cmdLS(conexao,adr,login,bd):
+    try:
+        file = open("./lists/"+login+".txt","r")
+        texto = file.read()
+        file.close()
+    except:
+        texto = "Diretório vazio." 
+    conexao.send(texto.encode())
+
+def cmdGET(conexao,adr,login,bd,carga):
+    #Etapa 01 - Recebe o diretório e verifica se ele é válido
+    diretorio = carga[0]            
+    if diretorio in bd.listarDir(login):
+        #Etapa 02 - Leitura, quebra e envio do arquivo.
+        conexao.send("05DIROK".encode())
+
+        file = open("./arqs/"+login+diretorio,"rb")
+        arq = file.read()
+        file.close()
+                
+        conexao.send(arq)
+
+        #Etapa 03 - Confirmação
+        if "C05RECVOK" == conexao.recv(MSG_BUFFER).decode():
+            print("CMD - O envio foi concluído.",adr)
+        else:
+            print("CMD - Envio falhou.",adr)
+                
+    else:
+        conexao.send("05DIRFAIL".encode())
+    
+def cmdPOST(conexao,adr,login,bd,carga):
+    #Etapa 01 - Receber nome 
             nome = carga[0]
             conexao.send("05NAMEOK".encode())
-            print("CMD - Solicitação de transferencia de arquivo recebida.",adr)
+            print("CMD - Nome recebido, aguardando diretório.",adr)
 
             #Etapa 02 - Receber o diretório e se preparar para receber arquivo
             diretorio = conexao.recv(MSG_BUFFER).decode()
@@ -219,44 +249,34 @@ def newCommandChecker(conexao,adr,login,bd):
                 conexao.send("05ARQOK".encode())
             else:
                 conexao.send("05ARQFAIL".encode())
-            
-        elif cmd == "DELETE":
-            print("CMD - Solicitação de remoção de arquivo.",adr)
-            if carga[0] in bd.listarDir(login):
-                os.remove("./arqs/"+login+carga[0])
-                print("CMD - Arquivo deletado.",adr)
-                bd.deletar(login,carga[0])
-                print("CMD - Lista de arquivos atualizada.",adr)
-                conexao.send("05DELOK".encode())
-            else:
-                conexao.send("05DELFAIL".encode())
-            
-        elif cmd == "PUT":
-            '''
-            print("CMD - Solicitação substituição de arquivo.",adr)
-            if carga[0] in bd.listarDir(login):
-            else:
-                conexao.send("05DIRFAIL".encode())
-            '''
-            return
-        elif cmd == "SHARE":
-            return
-        elif cmd == "QUIT":
-            conexao.send("END".encode())
-            conexao.close()
-            print("CMD - Conexão com",str(adr),"encerrada.")
-            break
-        else:
-            print("CMD - Comando incorreto recebido de",adr)
+
+def cmdDELETE(conexao,adr,login,bd,carga):
+    if carga[0] in bd.listarDir(login):
+        os.remove("./arqs/"+login+carga[0])
+        print("CMD - Arquivo deletado.",adr)
+        bd.deletar(login,carga[0])
+        print("CMD - Lista de arquivos atualizada.",adr)
+        conexao.send("05DELOK".encode())
+        return True
+    else:
+        conexao.send("05DELFAIL".encode())
+
+def cmdPUT(conexao,adr,login,bd,carga):
+    if cmdDELETE(conexao,adr,login,bd,[carga[0]]):
+        cmdPOST(conexao,adr,login,bd,[carga[1]])
+
+def cmdQUIT(conexao):
+    conexao.send("END".encode())
+    conexao.close()
         
 def main():
-    bd = BancoDados()
+    bd = BancoDados()       #Inicia o banco de dados
     
-    skt = socket(IPV4, TCP)
-    skt.bind(('',6000))
+    skt = socket(IPV4, TCP) #Inicia o socket
+    skt.bind(('',6000))     #Binda a porta
     
-    _thread.start_new_thread(newConnectionChecker,(skt,bd))
-    print("SERVER INICIADO")
+    _thread.start_new_thread(newConnectionChecker,(skt,bd)) #Inicia a Thread para ouvir novas conexões
+    print("CloudRain - Servidor\nServiço Online")
     while True:
         continue
 
