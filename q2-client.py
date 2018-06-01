@@ -20,7 +20,29 @@ def comandos(skt):
             skt.send("LS".encode())
             print(skt.recv(5000).decode())
         elif cmd == "GET":
-            return
+            #Etapa 01 - Eniva a solicitação, aguarda resposta
+            skt.send(("GET "+inverteBarra(carga[0])).encode())
+            if "05DIROK" == (skt.recv(1024).decode()):
+                skt.settimeout(1)
+                arq = bytes()                
+                while True:
+                    try:
+                        dados = skt.recv(32768)
+                        arq = arq + dados
+                    except:
+                        break
+                skt.settimeout(None)
+                
+                nome = inverteBarra(carga[0]).split("/")[-1]
+
+                file = open(nome,"wb")
+                file.write(arq)
+                file.close()
+
+                skt.send("C05RECVOK".encode())
+                print("Arquivo",nome,"recebido.")
+            else:
+                print("Diretório incorreto.")
         elif cmd == "POST":
             arqok = False
             try:
@@ -110,16 +132,17 @@ def main():
             skt = socket(AF_INET,SOCK_STREAM)
             skt.connect((ip,porta))
             msg = skt.recv(1024).decode()
-
-            if msg == "01HELLO":
-                print("Conectado.")
-                auth(skt)
-                break
-            else:
-                print("Ocorreu um erro de conexão")
-                skt.close()
         except:
             print("Ocorreu um erro na conexão. Tente novamente.")
+
+        if msg == "01HELLO":
+            print("Conectado.")
+            auth(skt)
+            break
+        else:
+            print("Ocorreu um erro de conexão")
+            skt.close()
+        
 
 if __name__ == "__main__":
     main()

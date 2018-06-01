@@ -150,7 +150,28 @@ def newCommandChecker(conexao,adr,login,bd):
                 texto = "Diretório vazio." 
             conexao.send(texto.encode())
         elif cmd == "GET":
-            return
+            print("CMD - Solicitação de acesso à arquivo.", adr)
+
+            #Etapa 01 - Recebe o diretório e verifica se ele é válido
+            diretorio = carga[0]            
+            if diretorio in bd.listarDir(login):
+                #Etapa 02 - Leitura, quebra e envio do arquivo.
+                conexao.send("05DIROK".encode())
+
+                file = open("./arqs/"+login+diretorio,"rb")
+                arq = file.read()
+                file.close()
+                
+                conexao.send(arq)
+
+                #Etapa 03 - Confirmação
+                if "C05RECVOK" == conexao.recv(1024).decode():
+                    print("CMD - O envio foi concluído.",adr)
+                else:
+                    print("CMD - Envio falhou.",adr)
+                
+            else:
+                conexao.send("05DIRFAIL".encode())
         elif cmd == "POST":
             #Etapa 01 - Receber nome 
             nome = carga[0]
@@ -161,19 +182,7 @@ def newCommandChecker(conexao,adr,login,bd):
             diretorio = conexao.recv(1024).decode()
             conexao.send("05DIROK".encode())
             print("CMD - Diretório recebido, aguardando arquivo.",adr)
-
-            '''
-            #Etapa 03 - Receber o arquivo 
-            file = open("./arqs/"+login+"/"+diretorio+"/"+nome,"bw")
-            while True:
-                dados = conexao.recv(1024)
-                if not dados:
-                    break
-                file.write(dados)
-            file.close()
-            appendDir(login,diretorio+nome)            
-            '''
-            
+                       
             #Etapa 03 - Receber o arquivo            
             arq = conexao.recv(1048576)            
             print("CMD - Arquivo recebido.",adr)           
