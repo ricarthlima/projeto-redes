@@ -1,6 +1,9 @@
 ﻿# Projeto de Redes
 ## Diário de Bordo
 
+### 02/06/2018
+Implementado o PUT da questão 02. O código foi melhor modularizado em funções. Alguns bugs e erros foram corrigidos.
+
 ### 01/06/2018
 Implementado o GET da questão 02. O bug na transferencia do POST foi resolvido.
 

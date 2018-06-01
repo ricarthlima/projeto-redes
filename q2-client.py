@@ -1,8 +1,22 @@
 from socket import *
+import os
 
 DEFAULT_TIMEOUT = 10
 MSG_BUFFER = 1024
 FILE_BUFFER = 1048576
+
+DIR_RECV = "recebidos"
+
+
+#FUNCOES AUXILIARES
+def testDIR():
+    if DIR_RECV not in os.listdir():
+        os.mkdir(DIR_RECV)
+
+def abrir(nome):
+    ent = input("Deseja abrir o arquivo '"+nome+"'? [S/N] ").upper()
+    if ent == "S":
+        os.startfile(DIR_RECV+"\\"+nome)
 
 #DEFINICAO DE ENDEREÇO
 def inputADDR():
@@ -69,11 +83,11 @@ def comandos(skt):
         else:
             print("Comando incorreto.")    
 
-def inverteBarra(string):
+def inverteBarra(string, org = '\\', nov = '/'):
     nova = ""
     for letra in string:
-        if letra == '\\':
-            nova += "/"
+        if letra == org:
+            nova += nov
         else:
             nova += letra
     return nova
@@ -98,12 +112,15 @@ def cmdGET(skt,carga):
                 
         nome = inverteBarra(carga[0]).split("/")[-1]
 
-        file = open(nome,"wb")
+        testDIR()
+        file = open(DIR_RECV+"\\"+nome,"wb")
         file.write(arq)
         file.close()
 
         skt.send("C05RECVOK".encode())
         print("Arquivo",nome,"recebido.")
+
+        abrir(nome)
     else:
         print("Diretório incorreto.")
 
