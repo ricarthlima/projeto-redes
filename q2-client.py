@@ -72,9 +72,13 @@ def comandos(skt):
             
         elif cmd == "PUT":
             cmdPUT(skt,carga)
+
+        elif cmd == "MKDIR" or cmd == "MAKEDIR":
+            cmdMKDIR(skt,carga)
             
         elif cmd == "SHARE":
-            return
+            cmdSHARE(skt,carga)
+            
         elif cmd == "QUIT":
             cmdQUIT(skt)
             return
@@ -156,6 +160,18 @@ def cmdPOST(skt,carga):
             else:
                 print("Tentativa de substituição de arquivo. Experimente PUT.")
 
+def cmdMKDIR(skt,carga):
+    diretorio = inverteBarra(carga[0])
+    skt.send(("MKDIR "+diretorio).encode())
+
+    resp = (skt.recv(MSG_BUFFER).decode())
+    if "05MKDIROK" == resp:
+        print("Diretório criado.")
+    elif "05DIREXISTS" == resp:
+        print("Diretório já existente.")
+    else:
+        print("Erro ao criar o diretório.")
+
 def cmdDELETE(skt,carga):
     diretorio = inverteBarra(carga[0])
     skt.send(("DELETE "+diretorio).encode())
@@ -178,6 +194,9 @@ def cmdPUT(skt,carga):
     else:
         print("Houve um erro ao substituir o arquivo.")
 
+def cmdSHARE(skt,carga):
+    
+
 def cmdQUIT(skt):    
     skt.send("QUIT".encode())
 
@@ -185,8 +204,9 @@ def cmdHELP():
     print("\nLS - Retorna lista de diretórios.\n")
     print("GET <diretorio> - Retorna o arquivo no diretório na nuvem especificado.\n")
     print("POST <diretorio_origem> <diretório_destino> - Faz upload do arquivo no diretório na nuvem.\n")
-    print("PUT <diretorio_origem> <diretorio_destino> - Substitui arquivo na nuvem.")
+    print("PUT <diretorio_origem> <diretorio_destino> - Substitui arquivo na nuvem.\n")
     print("DELETE <diretorio> - Exclue o arquivo no diretório na nuvem.\n")
+    print("MKDIR <diretorio> - Cria nova(s) pasta(s)\n")
     print("SHARE <diretorio_nuvem> <login_dest> - Compartilha um arquivo com outro usuário.\n")
     print("QUIT - Encerra a conexão.\n")
 

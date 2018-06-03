@@ -51,7 +51,7 @@ class BancoDados:
             print("Não foi possível criar o diretório.")
 
         file = open("./lists/"+login+".txt","w")
-        file.write("Diretorio de "+login+".")
+        file.write("/")
         file.close()
         
         self.__cadastrados[login] = (login,senha)
@@ -71,21 +71,40 @@ class BancoDados:
             texto = file.read()
             file.close()
 
-            return texto.split("\n")[1:]
+            return texto.split("\n")
         else:
             return False
     
     def __contains__(self,user):
         return user in self.__cadastrados
 
-    def deletar(self,login,delLinha):
+    def deletarDir(self,login,delLinha):
         linhas = self.listarDir(login)
         file = open("./lists/"+login+".txt","w")
-        file.write("Diretorio de "+login+".")
         for linha in linhas:
             if linha != delLinha:
                 file.write(linha)
         file.close()
+
+    def appendDir(self,login,diretorio):
+        file = open("./lists/"+login+".txt","a")
+        file.write("\n"+diretorio)
+        file.close()
+        self.ordenarDir(login)
+
+    def ordenarDir(self, login):
+        file = open("./lists/"+login+".txt","r")
+        linhas = file.read()
+        file.close()
+
+        linhas = linhas.split("\n")
+        linhas = sorted(linhas)
+        
+        file = open("./lists/"+login+".txt","w")
+        for linha in linhas:
+            file.write(linha+"\n")
+        file.close()
+        
 
 #FUNÇÕES DA REDE
 def newConnectionChecker(skt,bd):    
@@ -128,11 +147,6 @@ def auth(login,senha,conexao,adr,bd):
         
 def chamaCMD(conexao,adr,login,bd):
     _thread.start_new_thread(newCommandChecker,(conexao,adr,login,bd)) #Chama a thread que vai ficar ouvindo essa conexao
-
-def appendDir(login,diretorio):
-    file = open("./lists/"+login+".txt","a")
-    file.write("\n"+diretorio)
-    file.close()
     
 def newCommandChecker(conexao,adr,login,bd):
     #Thread para receber comandos
@@ -158,6 +172,10 @@ def newCommandChecker(conexao,adr,login,bd):
         elif cmd == "DELETE":
             print("CMD - Solicitação de remoção de arquivo.",adr)
             cmdDELETE(conexao,adr,login,bd,carga)
+
+        elif cmd == "MKDIR":
+            print("CMD - Solicitação de criação de diretório.",adr)
+            cmdMKDIR(conexao,adr,login,bd,carga) 
             
         elif cmd == "SHARE":
             return
@@ -166,7 +184,8 @@ def newCommandChecker(conexao,adr,login,bd):
             print("CMD - Solicitação de encerramento de conexão.",adr)
             cmdQUIT(conexao)
             print("CMD - Conexão com",str(adr),"encerrada.")
-            break
+            break                   
+        
         else:
             print("CMD - Comando incorreto recebido de",adr)
 
@@ -223,7 +242,7 @@ def cmdPOST(conexao,adr,login,bd,carga):
                         arq = arq + dados
                     except:
                         break
-                conexao.settimeout(None)
+                conexao.settimeout(None)                
                 print("CMD - Arquivo recebido.",adr)
             else:
                 conexao.send("05DUPL".encode())
@@ -235,11 +254,12 @@ def cmdPOST(conexao,adr,login,bd,carga):
                 file = open("./arqs/"+login+"/"+diretorio+"/"+nome,"bw")
                 file.write(arq)
                 file.close()
-
-                appendDir(login,diretorio+nome)
+                
+                                
             except:
                 fail = True
-            
+
+            bd.appendDir(login,diretorio+nome)
             #Etapa 05 - Confirmação
             if fail == False:
                 conexao.send("05ARQOK".encode())
@@ -250,12 +270,23 @@ def cmdDELETE(conexao,adr,login,bd,carga):
     if carga[0] in bd.listarDir(login):
         os.remove("./arqs/"+login+carga[0])
         print("CMD - Arquivo deletado.",adr)
-        bd.deletar(login,carga[0])
+        bd.deletarDir(login,carga[0])
         print("CMD - Lista de arquivos atualizada.",adr)
         conexao.send("05DELOK".encode())
         return True
     else:
         conexao.send("05DELFAIL".encode())
+
+def cmdMKDIR(conexao,adr,login,bd,carga):
+    if carga[0] in bd.listarDir(login):
+        conexao.send("05DIREXISTS".encode())
+    else:
+        try:
+            os.makedirs("./arqs/"+login+carga[0])
+            bd.appendDir(login,carga[0])
+            conexao.send("05MKDIROK".encode())
+        except:
+            conexao.send("05MKDIRFAIL".encode())
 
 def cmdQUIT(conexao):
     conexao.send("END".encode())
