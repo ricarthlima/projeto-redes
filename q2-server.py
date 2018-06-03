@@ -178,7 +178,8 @@ def newCommandChecker(conexao,adr,login,bd):
             cmdMKDIR(conexao,adr,login,bd,carga) 
             
         elif cmd == "SHARE":
-            return
+            print("CMD - Solicitação de compartilhamento.",adr)
+            cmdSHARE(conexao,adr,login,bd,carga)
         
         elif cmd == "QUIT":
             print("CMD - Solicitação de encerramento de conexão.",adr)
@@ -283,10 +284,26 @@ def cmdMKDIR(conexao,adr,login,bd,carga):
     else:
         try:
             os.makedirs("./arqs/"+login+carga[0])
-            bd.appendDir(login,carga[0])
+            bd.appendDir(login,(carga[0]+"/"))
             conexao.send("05MKDIROK".encode())
         except:
             conexao.send("05MKDIRFAIL".encode())
+
+def cmdSHARE(conexao,adr,login,bd,carga):
+    print(carga[0],carga[1])
+    
+    if carga[0] in bd.listarDir(login) and (carga[1] in bd):
+        loginDest = carga[1]
+
+        dirs = bd.listarDir(login)
+        for diretorio in dirs:
+            if diretorio.startswith(carga[0]):
+                bd.appendDir(loginDest,diretorio)
+
+        conexao.send("05SHAREOK".encode())
+    else:
+        conexao.send("05SHAREFAIL".encode())
+        
 
 def cmdQUIT(conexao):
     conexao.send("END".encode())

@@ -82,6 +82,7 @@ def comandos(skt):
         elif cmd == "QUIT":
             cmdQUIT(skt)
             return
+        
         elif cmd == "HELP" or cmd == "?":
             cmdHELP()
         else:
@@ -147,14 +148,14 @@ def cmdPOST(skt,carga):
         if "05NAMEOK" == (skt.recv(MSG_BUFFER).decode()):
             #Etapa 02 - Envio do diretorio em server do arquivo
             if len(carga) > 1:
-                skt.send(carga[1].encode())
+                skt.send((carga[1]+"/").encode())
             else:
                 skt.send("/".encode())
             if "05DIROK" == (skt.recv(MSG_BUFFER).decode()):
                 #Etapa 03 - Enviar o arquivo
                 skt.send(arq)
                 if "05ARQOK" == (skt.recv(MSG_BUFFER).decode()):
-                    print("Arquivo transferido.")
+                    print("Arquivo",nome,"transferido.")
                 else:
                     print("Diretório não encontrado.")
             else:
@@ -195,7 +196,12 @@ def cmdPUT(skt,carga):
         print("Houve um erro ao substituir o arquivo.")
 
 def cmdSHARE(skt,carga):
-    
+    skt.send(("SHARE "+carga[0]+" "+carga[1]).encode())
+    resp = skt.recv(MSG_BUFFER).decode()
+    if resp == "05SHAREOK":
+        print("Arquivo",carga[0],"compartilhado com",carga[1],"com sucesso.")
+    else:
+        print("Falha no compartilhamento.")
 
 def cmdQUIT(skt):    
     skt.send("QUIT".encode())

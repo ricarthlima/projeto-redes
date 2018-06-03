@@ -1,6 +1,9 @@
 ﻿# Projeto de Redes
 ## Diário de Bordo
 
+### 03/06/2018
+Implementado o MKDIR para criar um nova pasta na questão 02. Foi iniciada a implementação do SHARE para compartilhamento, onde o arquivo de texto já está sendo alterado, mas ao fazer um GET ele nao vai para a pasta do dono e sim do destinatário. Talvez para resolver isso seja necessário reformular toda a forma que os diretorios sao armazenados na lista.
+
 ### 02/06/2018
 Implementado o PUT da questão 02. O código foi melhor modularizado em funções. Alguns bugs e erros foram corrigidos.
 
