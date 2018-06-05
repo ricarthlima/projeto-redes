@@ -1,5 +1,8 @@
-﻿# Projeto de Redes
+# Projeto de Redes
 ## Diário de Bordo
+
+### 04/06/2018
+Q2 - A implementação da transferencia de dados no GET e no POST foi alterada. Antes, lia-se todo o arquivo de uma vez, e o mesmo era mandando todo de uma vez para o socket. Isso gerava vários bugs e até impossibilitava a transferencia de arquivos maiores. Agora lê-se linha por linha, e blocos de 100 linhas são enviadas para o socket. Isso permite que arquivos grande sejam transferidos (ainda que esporádicos bugs aconteçam). Por algum motivo o comando GET é substancialmente mais lento que o POST, mesmo numa rede local, nossa única suspeita é que sejam as threads e alocamento de recursos para elas. Aproveitamos as alterações para implementar um simples sistema de porcentagem de transferência. 
 
 ### 03/06/2018
 Implementado o MKDIR para criar um nova pasta na questão 02. Foi iniciada a implementação do SHARE para compartilhamento, onde o arquivo de texto já está sendo alterado, mas ao fazer um GET ele nao vai para a pasta do dono e sim do destinatário. Talvez para resolver isso seja necessário reformular toda a forma que os diretorios sao armazenados na lista.
