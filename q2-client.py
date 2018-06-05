@@ -169,7 +169,6 @@ def cmdPOST(skt,carga):
 
             #Variáveis para mostrar porcentagem
             i = 0
-            t = 0
             while True:
                 #Transferência do arquivo.
                 arq = bytes()
@@ -182,16 +181,10 @@ def cmdPOST(skt,carga):
                     
                 if len(arq) > 0:
                     skt.send(arq)
-                    i += len(arq)                    
+                    i += len(arq)
+                    print(str(int(i/tam * 100))+"% transferidos.", end="\r")
                 else:
                     break
-
-                #Cálculo e mostra da porcentagem (uma única vez por digito)
-                porcentagem = i/tam * 100
-                if porcentagem > t:                    
-                    porcentagem = str(int(porcentagem))+"%"
-                    print(porcentagem, end="\r")
-                    t += 1
 
             file.close() #Fechar arquivo
             
