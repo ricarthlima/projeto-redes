@@ -204,11 +204,22 @@ def cmdGET(conexao,adr,login,bd,carga):
         #Etapa 02 - Leitura, quebra e envio do arquivo.
         conexao.send("05DIROK".encode())
 
-        file = open("./arqs/"+login+diretorio,"rb")
-        arq = file.read()
+        file = open("./arqs/"+login+diretorio,"rb")        
+        i=0
+        while True:
+            arq = bytes()
+            for ind in range(0,100):
+                dados = file.readline()
+                if len(dados) > 0:
+                    arq += dados
+                else:
+                    break
+
+            if len(arq) > 0:
+                conexao.send(arq)
+            else:
+                break
         file.close()
-                
-        conexao.send(arq)
 
         #Etapa 03 - Confirmação
         if "C05RECVOK" == conexao.recv(MSG_BUFFER).decode():

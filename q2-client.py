@@ -102,26 +102,29 @@ def cmdLS(skt):
     print(skt.recv(5000).decode())
 
 def cmdGET(skt,carga):
+    #Etapa 01 - Cria o diretório
+    testDIR()
+    nome = inverteBarra(carga[0]).split("/")[-1]
+    file = open(DIR_RECV+"\\"+nome,"wb")    
+    
+    
     #Etapa 01 - Eniva a solicitação, aguarda resposta
     skt.send(("GET "+inverteBarra(carga[0])).encode())
     if "05DIROK" == (skt.recv(MSG_BUFFER).decode()):
-        skt.settimeout(1)
-        arq = bytes()                
+        
+        skt.settimeout(1)                        
         while True:
             try:
                 dados = skt.recv(FILE_BUFFER)
-                arq = arq + dados
+                if len(dados) > 0:
+                    file.write(dados)
+                else:
+                    break
             except:
                 break
         skt.settimeout(DEFAULT_TIMEOUT)
-                
-        nome = inverteBarra(carga[0]).split("/")[-1]
-
-        testDIR()
-        file = open(DIR_RECV+"\\"+nome,"wb")
-        file.write(arq)
-        file.close()
-
+        file.close() 
+        
         skt.send("C05RECVOK".encode())
         print("Arquivo",nome,"recebido.")
 
