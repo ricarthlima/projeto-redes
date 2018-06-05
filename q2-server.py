@@ -204,6 +204,13 @@ def cmdGET(conexao,adr,login,bd,carga):
         #Etapa 02 - Leitura, quebra e envio do arquivo.
         conexao.send("05DIROK".encode())
 
+        #Etapa 2.5 - Enviar o tamanho
+        file = open("./arqs/"+login+diretorio,"rb")
+        tam = str(len(file.read()))
+        file.close()
+        conexao.send(tam.encode())
+        
+        #Envio do arquivo
         file = open("./arqs/"+login+diretorio,"rb")        
         i=0
         while True:

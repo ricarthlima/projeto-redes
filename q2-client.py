@@ -111,6 +111,8 @@ def cmdGET(skt,carga):
     #Etapa 01 - Eniva a solicitação, aguarda resposta
     skt.send(("GET "+inverteBarra(carga[0])).encode())
     if "05DIROK" == (skt.recv(MSG_BUFFER).decode()):
+        tam = int(skt.recv(MSG_BUFFER).decode())
+        rec = 0
         
         skt.settimeout(1)                        
         while True:
@@ -118,6 +120,8 @@ def cmdGET(skt,carga):
                 dados = skt.recv(FILE_BUFFER)
                 if len(dados) > 0:
                     file.write(dados)
+                    rec = rec + len(dados)
+                    print(str(int((rec/tam)*100))+"% transferidos.",end = "\r")
                 else:
                     break
             except:
