@@ -34,7 +34,10 @@ class BancoDados:
             if "arqs" not in os.listdir():
                 os.makedirs("./arqs/")
         except:
-            print("Não foi possível criar o diretório. Experimente abrir em modo administrador.")
+            print("Não foi possível criar o diretório. Experimente abrir em modo administrador.")    
+    
+    def __contains__(self,user):
+        return user in self.__cadastrados
 
     def salvar(self):
         #Salva no arquivo
@@ -51,7 +54,7 @@ class BancoDados:
             print("Não foi possível criar o diretório.")
 
         file = open("./lists/"+login+".txt","w")
-        file.write("/")
+        file.write("/\n")
         file.close()
         
         self.__cadastrados[login] = (login,senha)
@@ -74,35 +77,31 @@ class BancoDados:
             return texto.split("\n")
         else:
             return False
-    
-    def __contains__(self,user):
-        return user in self.__cadastrados
 
     def deletarDir(self,login,delLinha):
         linhas = self.listarDir(login)
         file = open("./lists/"+login+".txt","w")
         for linha in linhas:
             if linha != delLinha:
-                file.write(linha)
+                file.write(linha+"\n")
         file.close()
 
-    def appendDir(self,login,diretorio):
+    def appendDir(self,login,diretorio,orig=""):
+        if orig != "":
+            diretorio = diretorio + " (" + orig + ")"
+        
         file = open("./lists/"+login+".txt","a")
-        file.write("\n"+diretorio)
+        file.write(diretorio+"\n")
         file.close()
         self.ordenarDir(login)
 
-    def ordenarDir(self, login):
-        file = open("./lists/"+login+".txt","r")
-        linhas = file.read()
-        file.close()
-
-        linhas = linhas.split("\n")
-        linhas = sorted(linhas)
+    def ordenarDir(self, login):        
+        linhas = sorted(self.listarDir(login))
         
         file = open("./lists/"+login+".txt","w")
         for linha in linhas:
-            file.write(linha+"\n")
+            if linha != "" and linha != "\n":
+                file.write(linha+"\n")
         file.close()
         
 
@@ -166,8 +165,7 @@ def newCommandChecker(conexao,adr,login,bd):
             
         elif cmd == "POST":
             print("CMD - Solicitação de transferencia de arquivo recebida.",adr)
-            cmdPOST(conexao,adr,login,bd,carga)
-            
+            cmdPOST(conexao,adr,login,bd,carga)            
             
         elif cmd == "DELETE":
             print("CMD - Solicitação de remoção de arquivo.",adr)
@@ -222,51 +220,46 @@ def cmdGET(conexao,adr,login,bd,carga):
         conexao.send("05DIRFAIL".encode())
     
 def cmdPOST(conexao,adr,login,bd,carga):
+
     #Etapa 01 - Receber nome 
-            nome = carga[0]
-            conexao.send("05NAMEOK".encode())
-            print("CMD - Nome recebido, aguardando diretório.",adr)
+    nome = carga[0]
+    conexao.send("05NAMEOK".encode())
+    print("CMD - Nome recebido, aguardando diretório.",adr)
 
-            #Etapa 02 - Receber o diretório e se preparar para receber arquivo
-            diretorio = conexao.recv(MSG_BUFFER).decode()
-            if (diretorio+nome) not in bd.listarDir(login):
-                conexao.send("05DIROK".encode())
-                print("CMD - Diretório recebido, aguardando arquivo.",adr)
+    #Etapa 02 - Receber o diretório e se preparar para receber arquivo
+    diretorio = conexao.recv(MSG_BUFFER).decode()
+    
+    if (diretorio+nome) not in bd.listarDir(login):
+        conexao.send("05DIROK".encode())
+        print("CMD - Diretório recebido, aguardando arquivo.",adr)
 
-                           
-                #Etapa 03 - Receber o arquivo
-                conexao.settimeout(1)
-                arq = bytes()
-                while True:
-                    try:
-                        dados = conexao.recv(FILE_BUFFER)
-                        arq = arq + dados
-                    except:
-                        break
-                conexao.settimeout(None)                
-                print("CMD - Arquivo recebido.",adr)
-            else:
-                conexao.send("05DUPL".encode())
-                print("CMD - Tentativa de substituição de arquivo.",adr)
-
-            #Etapa 04 - Gravar o arquivo
-            fail = False
+        file = open("./arqs/"+login+"/"+diretorio+"/"+nome,"bw")
+        
+        #Etapa 03 - Receber o arquivo
+        conexao.settimeout(1)
+        while True:
             try:
-                file = open("./arqs/"+login+"/"+diretorio+"/"+nome,"bw")
-                file.write(arq)
-                file.close()
-                
-                                
+                dados = conexao.recv(FILE_BUFFER)
+                if len(dados) > 0:
+                    file.write(dados)
+                else:
+                    break
             except:
-                fail = True
+                break
+        conexao.settimeout(None) 
 
-            bd.appendDir(login,diretorio+nome)
-            #Etapa 05 - Confirmação
-            if fail == False:
-                conexao.send("05ARQOK".encode())
-            else:
-                conexao.send("05ARQFAIL".encode())
+        file.close()                               
+        print("CMD - Arquivo recebido.",adr)
+    else:
+        conexao.send("05DUPL".encode())
+        print("CMD - Tentativa de substituição de arquivo.",adr)
 
+    
+    bd.appendDir(login,diretorio+nome)
+    
+    #Etapa 05 - Confirmação
+    conexao.send("05ARQOK".encode())
+    
 def cmdDELETE(conexao,adr,login,bd,carga):
     if carga[0] in bd.listarDir(login):
         os.remove("./arqs/"+login+carga[0])
@@ -298,7 +291,7 @@ def cmdSHARE(conexao,adr,login,bd,carga):
         dirs = bd.listarDir(login)
         for diretorio in dirs:
             if diretorio.startswith(carga[0]):
-                bd.appendDir(loginDest,diretorio)
+                bd.appendDir(loginDest,diretorio,login)
 
         conexao.send("05SHAREOK".encode())
     else:

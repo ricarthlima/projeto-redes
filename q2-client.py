@@ -130,37 +130,64 @@ def cmdGET(skt,carga):
         print("Diretório incorreto.")
 
 def cmdPOST(skt,carga):
-    arqok = False
+    tam = 0
     
     try:
-        file = open(carga[0],"br")   #Vamos ler o arquivo origem.
-        arq = file.read()
+        #Informação para porcentagem.
+        file = open(carga[0],"br")
+        tam = len(file.readlines())
         file.close()
-        arqok = True
+
+        #Abre o arquivo para leitura.
+        file = open(carga[0],"br")
     except:
         print("Arquivo não encontrado.")
+        return
 
-    if arqok:
-        nome = inverteBarra(carga[0]).split("/")[-1]
+    
+    nome = inverteBarra(carga[0]).split("/")[-1]
 
-        #Etapa 01 - Envio do comando e do nome do arquivo
-        skt.send(("POST "+nome).encode())
-        if "05NAMEOK" == (skt.recv(MSG_BUFFER).decode()):
-            #Etapa 02 - Envio do diretorio em server do arquivo
-            if len(carga) > 1:
-                skt.send((carga[1]+"/").encode())
-            else:
-                skt.send("/".encode())
-            if "05DIROK" == (skt.recv(MSG_BUFFER).decode()):
-                #Etapa 03 - Enviar o arquivo
-                skt.send(arq)
-                if "05ARQOK" == (skt.recv(MSG_BUFFER).decode()):
-                    print("Arquivo",nome,"transferido.")
+    #Etapa 01 - Envio do comando e do nome do arquivo
+    skt.send(("POST "+nome).encode())
+    
+    if "05NAMEOK" == (skt.recv(MSG_BUFFER).decode()):
+        #Etapa 02 - Envio do diretorio em server do arquivo
+        if len(carga) > 1:
+            skt.send((carga[1]+"/").encode())
+        else:
+            skt.send("/".encode())
+            
+        if "05DIROK" == (skt.recv(MSG_BUFFER).decode()):
+            #Etapa 03 - Enviar o arquivo
+
+            #Variáveis para mostrar porcentagem
+            i = 0
+            t = 1
+            while True:
+                #Transferência do arquivo.
+                arq = file.readline()
+                if len(arq) > 0:
+                    skt.send(arq)
+                    i += 1                    
                 else:
-                    print("Diretório não encontrado.")
-            else:
-                print("Tentativa de substituição de arquivo. Experimente PUT.")
+                    break
 
+                #Cálculo e mostra da porcentagem (uma única vez por digito)
+                porcentagem = i/tam * 100                
+                if porcentagem > t:
+                    porcentagem = str(int(porcentagem))+"%"
+                    print(porcentagem, end="\r")
+                    t += 1
+
+            file.close() #Fechar arquivo
+            
+            if "05ARQOK" == (skt.recv(MSG_BUFFER).decode()):
+                print("Arquivo",nome,"transferido.")
+            else:
+                print("Diretório não encontrado.")
+        else:
+            print("Tentativa de substituição de arquivo. Experimente PUT.")
+            
 def cmdMKDIR(skt,carga):
     diretorio = inverteBarra(carga[0])
     skt.send(("MKDIR "+diretorio).encode())
