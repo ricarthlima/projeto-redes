@@ -135,7 +135,7 @@ def cmdPOST(skt,carga):
     try:
         #Informação para porcentagem.
         file = open(carga[0],"br")
-        tam = len(file.readlines())
+        tam = len(file.read())
         file.close()
 
         #Abre o arquivo para leitura.
@@ -162,19 +162,26 @@ def cmdPOST(skt,carga):
 
             #Variáveis para mostrar porcentagem
             i = 0
-            t = 1
+            t = 0
             while True:
                 #Transferência do arquivo.
-                arq = file.readline()
+                arq = bytes()
+                for ind in range(0,100):
+                    dados = file.readline()
+                    if len(dados) > 0: 
+                        arq += dados
+                    else:
+                        break
+                    
                 if len(arq) > 0:
                     skt.send(arq)
-                    i += 1                    
+                    i += len(arq)                    
                 else:
                     break
 
                 #Cálculo e mostra da porcentagem (uma única vez por digito)
-                porcentagem = i/tam * 100                
-                if porcentagem > t:
+                porcentagem = i/tam * 100
+                if porcentagem > t:                    
                     porcentagem = str(int(porcentagem))+"%"
                     print(porcentagem, end="\r")
                     t += 1
