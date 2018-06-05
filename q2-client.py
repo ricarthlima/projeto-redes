@@ -29,7 +29,7 @@ def inputADDR():
         try:
             porta = int(adr.split(":")[1])            
         except:
-            print("Endereço do servidor incorreto.")
+            print("Endereço do servidor incorreto.\n")
             return False,False,False
                 
     return True,ip,porta
@@ -48,7 +48,7 @@ def auth(skt):
             comandos(skt)
             skt.close()
             return
-    print("A autenticação falhou.")
+    print("A autenticação falhou.\n")
     return
 
 #PROCESSAMENTO DE COMANDOS.
@@ -270,7 +270,7 @@ def main():
                 skt.connect((ip,porta))
                 msg = skt.recv(MSG_BUFFER).decode()
             except:
-                print("Ocorreu um erro na conexão. Tente novamente.")
+                print("Ocorreu um erro na conexão. Tente novamente.\n")
 
             if msg == "01HELLO":
                 print("Conectado.")

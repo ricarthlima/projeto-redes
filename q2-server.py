@@ -124,6 +124,7 @@ def newConnectionChecker(skt,bd):
         senha = conexao.recv(MSG_BUFFER).decode() #Recebe a senha
         print("NCC - Senha recebida de,",str(adr))
 
+        adr = "[" + login + ", " + str(list(adr)[:-1])[1:]
         auth(login,senha,conexao,adr,bd)
 
 def auth(login,senha,conexao,adr,bd):    
