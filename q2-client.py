@@ -105,11 +105,17 @@ def cmdGET(skt,carga):
     #Etapa 01 - Cria o diretório
     testDIR()
     nome = inverteBarra(carga[0]).split("/")[-1]
-    file = open(DIR_RECV+"\\"+nome,"wb")    
+    file = open(DIR_RECV+"\\"+nome,"wb")
+
+    user = ""
+    if len(carga) > 1:
+        if carga[0][0] == "*":
+            carga[0] = carga[0][1:]
+        user = carga[1][1:-1]
     
     
     #Etapa 01 - Eniva a solicitação, aguarda resposta
-    skt.send(("GET "+inverteBarra(carga[0])).encode())
+    skt.send(("GET " + inverteBarra(carga[0]) + " " + user).encode())
     if "05DIROK" == (skt.recv(MSG_BUFFER).decode()):
         tam = int(skt.recv(MSG_BUFFER).decode())
         rec = 0

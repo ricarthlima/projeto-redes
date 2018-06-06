@@ -1,5 +1,14 @@
-# Projeto de Redes
+﻿# Projeto de Redes
 ## Diário de Bordo
+
+### 06/06/2018
+Q2 - Foi implementado o comando SHARE, e com ele todos os requesitos mínimos da questão 02 foram atendidos. Há um interesse por otimização e continuidade dessa questão, portanto se houver tempo ao final outras coisas serão implementadas. Dentre elas:
+- Melhorar modularização
+- Otimizar transferências, inclusive o GET.
+- Derterminar tamanho dos buffers com algum argumento, e não arbitrariamente. 
+- Usar uma nova conexão para transferência dos arquivos (out of band).
+
+Inicia-se o estudo e o planejamento para a questão 03.
 
 ### 04/06/2018
 Q2 - A implementação da transferencia de dados no GET e no POST foi alterada. Antes, lia-se todo o arquivo de uma vez, e o mesmo era mandando todo de uma vez para o socket. Isso gerava vários bugs e até impossibilitava a transferencia de arquivos maiores. Agora lê-se linha por linha, e blocos de 100 linhas são enviadas para o socket. Isso permite que arquivos grande sejam transferidos (ainda que esporádicos bugs aconteçam). Por algum motivo o comando GET é substancialmente mais lento que o POST, mesmo numa rede local, nossa única suspeita é que sejam as threads e alocamento de recursos para elas. Aproveitamos as alterações para implementar um simples sistema de porcentagem de transferência. 

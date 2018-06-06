@@ -88,7 +88,7 @@ class BancoDados:
 
     def appendDir(self,login,diretorio,orig=""):
         if orig != "":
-            diretorio = diretorio + " (" + orig + ")"
+            diretorio = "*" + diretorio + " (" + orig + ")"
         
         file = open("./lists/"+login+".txt","a")
         file.write(diretorio+"\n")
@@ -200,8 +200,19 @@ def cmdLS(conexao,adr,login,bd):
 
 def cmdGET(conexao,adr,login,bd,carga):
     #Etapa 01 - Recebe o diretório e verifica se ele é válido
-    diretorio = carga[0]            
-    if diretorio in bd.listarDir(login):
+    cmp = False
+    diretorio = carga[0]
+    
+    if len(carga) > 1:
+        if carga[1] in bd:
+            login = carga[1]
+            cmp = True
+        else:
+            conexao.send("05DIRFAIL".encode())
+    else:
+        conexao.send("05DIRFAIL".encode())
+    
+    if diretorio in bd.listarDir(login) or cmp:
         #Etapa 02 - Leitura, quebra e envio do arquivo.
         conexao.send("05DIROK".encode())
 
