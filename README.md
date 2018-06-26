@@ -1,6 +1,9 @@
 ﻿# Projeto de Redes
 ## Diário de Bordo
 
+### 25/06/2018
+Q3 - Deu-se inicio a implementação da questão 03. Foi criada a estrutura básica do cliente e do servidor, e adicionado a funcionalidade de LOGIN.
+
 ### 06/06/2018
 Q2 - Foi implementado o comando SHARE, e com ele todos os requesitos mínimos da questão 02 foram atendidos. Há um interesse por otimização e continuidade dessa questão, portanto se houver tempo ao final outras coisas serão implementadas. Dentre elas:
 - Melhorar modularização
