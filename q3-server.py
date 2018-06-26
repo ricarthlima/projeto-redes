@@ -1,4 +1,6 @@
 from socket import *
+import time
+import _thread
 
 IPV4 = AF_INET
 UDP = SOCK_DGRAM
@@ -7,6 +9,10 @@ TCP = SOCK_STREAM
 MSG_BUFFER = 1024
 
 PORTA = 28137
+
+global filaNormalGame
+global filaRanked
+global salasPrivadas
 
 class Player:
     def __init__(self,login,senha,pontos,adr=None):
@@ -69,7 +75,8 @@ class BancoDados:
 def login(bd,login,senha,adr):
     if login in bd:
         if bd[login].getSenha() == senha:
-            skt.sendto("LOGINOK".encode(),adr)
+            msg = "LOGINOK " + str(bd[login].getPontos())
+            skt.sendto(msg.encode(),adr)
             bd[login].refresh(adr)
         else:
             skt.sendto("LOGIN-ERROR".encode(),adr)
@@ -78,21 +85,102 @@ def login(bd,login,senha,adr):
         skt.sendto("LOGINOK".encode(),adr)
         print("Usuário",login,"adicionado.")
             
+#FILA NORMAL GAME --------------------------------------------------------------
+def normalGame(skt,adr):
+    filaNormalGame.append(adr)
+    for i in range(0,4):
+        time.sleep(5)
+        if len(filaNormalGame) >= 2 and adr in filaNormalGame:
+            startNormalGame(skt)
+            return
+        elif adr not in filaNormalGame:
+            return
+        else:
+            skt.sendto("WAITING".encode(),adr)
+
+    skt.sendto("NOGAMEFOUND".encode(),adr)
+    filaNormalGame.remove(adr)
+
+def startNormalGame(skt):
+    jogadores = filaNormalGame[:min(6,len(filaNormalGame))]    
+
+    listaJogadores = ""
+    for player in jogadores:
+        listaJogadores = listaJogadores + str(player[0])+"-"+str(player[1]) + ";"
+
+    print(listaJogadores)
+        
+    for adr in jogadores:
+        skt.sendto(("READY "+listaJogadores).encode(),adr)
+        filaNormalGame.remove(adr)
+
+#-------------------------------------------------------------------------------
+        
+#FILA RANKED GAME --------------------------------------------------------------
+def rankedGame(skt,adr):
+    filaRanked.append(adr)
+    for i in range(0,30):
+        time.sleep(10)
+        if len(filaRanked) >= 5 and adr in filaRanked:
+            startRanked(skt)
+            return
+        elif adr not in filaRanked:
+            return
+        else:
+            skt.sendto("WAITING".encode(),adr)
+
+    skt.sendto("NOGAMEFOUND".encode(),adr)
+    filaRanked.remove(adr)
+
+def startRanked(skt):
+    jogadores = filaRanked[:6]    
+
+    listaJogadores = ""
+    for player in jogadores:
+        listaJogadores = listaJogadores + str(player[0])+"-"+str(player[1]) + ";"
+
+    print("Ranked -",listaJogadores)
+        
+    for adr in jogadores:
+        skt.sendto(("READY "+listaJogadores).encode(),adr)
+        filaRanked.remove(adr)
+
+#-------------------------------------------------------------------------------
+        
+
 def ouvirCMD(skt,bd):    
     msg, adr = skt.recvfrom(1024)
     msg = msg.decode().split(" ")
-    if msg[0] == "HELO":
+
+    cmd = msg[0]
+    
+    if cmd == "HELO":
         print("CMD - Saudação com",adr)
         skt.sendto("WELCOME".encode(),adr)
-    elif msg[0] == "LOGIN" and len(msg) == 3:
+        
+    elif cmd == "LOGIN" and len(msg) == 3:
         login(bd,msg[1],msg[2],adr)
+
+    elif cmd == "NORMAL":
+        _thread.start_new_thread(normalGame,(skt,adr))
+
+    elif cmd == "RANKED":
+        _thread.start_new_thread(rankedGame,(skt,adr))
     
 
 if __name__ == "__main__":
     bd = BancoDados()
+
+    filaNormalGame = []
+    filaRanked = []
+    salasPrivadas = []
+    
+    
     skt = socket(IPV4,UDP)
     skt.bind(('',PORTA))
+    
     print("Server Online.")
+    
     while True:
         ouvirCMD(skt,bd)
     

@@ -1,6 +1,9 @@
 ﻿# Projeto de Redes
 ## Diário de Bordo
 
+### 26/06/2018
+Q3 - O servidor já é capaz de gerenciar filas normais e ranqueadas para partidas. O cliente já recebe (em ambos os casos) uma string contendo os endereços dos jogadares que estão na partida (o seu e de seus adversários). O próximo passo para o cliente é o próprio jogo em P2P já que uma vez que ele recebe os endereços não há mais participação do server. Já o server só será alterado agora quando tiver de receber os pontos das partidas ranqueadas.
+
 ### 25/06/2018
 Q3 - Deu-se inicio a implementação da questão 03. Foi criada a estrutura básica do cliente e do servidor, e adicionado a funcionalidade de LOGIN.
 
