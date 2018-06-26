@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
     while True:
         print("\n"+login,"-",pontos,"Pontos de Ranked")
-        print("\n1.Partida Livre\n2.Partida Ranqueada.\n3.Partida Privada\n4.Ver Ranking\n4.Sair")
+        print("\n1.Partida Livre\n2.Partida Ranqueada.\n3.Partida Privada\n4.Ver Ranking\n5.Sair")
         ent = input("> ")
 
         if ent == "1":
@@ -107,7 +107,9 @@ if __name__ == "__main__":
         elif ent == "3":
             print("privada")
         elif ent == "4":
-            print("ranking")
+            skt.sendto(("RANKING "+login).encode(),server)
+            msg,adr = skt.recvfrom(4096)
+            print(msg.decode())
         elif ent == "5":
             break
         else:

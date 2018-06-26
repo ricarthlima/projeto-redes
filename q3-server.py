@@ -36,6 +36,27 @@ class Player:
     def refresh(self,adr):
         self.__adr = adr
 
+    def __lt__(self, other):
+         return self.getPontos() < other.getPontos()
+        
+    def __le__(self, other):
+         return self.getPontos() <= other.getPontos()        
+    
+    def __eq__(self, other):
+         return self.getPontos() == other.getPontos()        
+    
+    def __ne__(self, other):
+         return self.getPontos() != other.getPontos()        
+    
+    def __gt__(self, other):
+         return self.getPontos() > other.getPontos()        
+    
+    def __ge__(self, other):
+         return self.getPontos() >= other.getPontos()        
+    
+
+    
+
 class BancoDados:
     def __init__(self):
         self.__bd = {}
@@ -70,6 +91,17 @@ class BancoDados:
         file = open("bd.txt","a")
         file.write(login+";"+senha+";0\n")
         file.close()
+
+    def ranking(self,login):
+        pos = -1
+        rank = []
+        for player in self.__bd:
+            rank.append(self.__bd[player])
+            rank = sorted(rank, reverse = True)
+            if len(rank) > 25:
+                rank = rank[:-1]
+
+        return (rank,self.__bd[login].getPontos())
         
 
 def login(bd,login,senha,adr):
@@ -166,6 +198,15 @@ def ouvirCMD(skt,bd):
 
     elif cmd == "RANKED":
         _thread.start_new_thread(rankedGame,(skt,adr))
+
+    elif cmd == "RANKING":
+        rank, pontos = bd.ranking(msg[1])
+        string = ""
+        for player in rank:
+            string = string + player.getLogin() + " - " + player.getPontos() + "\n"
+        string = string + "\n" + msg[1] + " - " + pontos
+        skt.sendto(string.encode(),adr)
+        
     
 
 if __name__ == "__main__":
