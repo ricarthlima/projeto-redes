@@ -1,10 +1,15 @@
 from socket import *
+import time
+import random
+import _thread
 
 IPV4 = AF_INET
 UDP = SOCK_DGRAM
 TCP = SOCK_STREAM
 
 PORTA = 28137
+
+global login
 
 def serverCMD(skt,server):
     try:        
@@ -30,8 +35,95 @@ def loginCMD(skt,server,login,senha):
             return (True,int(msg[1]))
     return (False,-1)
 
-def startGame(adrs,ranked):
-    print(adrs)
+class Player:
+    def __init__(self,adr,idPlayer):
+        self.adr = adr
+        self.id = idPlayer
+    def __str__(self):
+        return str((self.adr,self.id))
+    def __repr_(self):
+        return str((self.adr,self.id))
+                 
+def adrToPlayer(skt,adrs):
+    adrs = adrs.split(";")
+    adrs.remove('') #Corrigir bug
+    lista = []
+
+    idPlayer = 0
+    for adr in adrs:
+        if int(adr.split("-")[1]) != skt.getsockname()[1]:
+            endereco = (adr.split("-")[0], int(adr.split("-")[1]))
+            lista.append(Player(endereco,idPlayer))
+            idPlayer += 1
+
+    return lista
+
+def tempo(t):
+    time.sleep(t)
+    _thread.interrupt_main()
+    _thread.exit()
+
+def endGame(skt,ranked = False, pontos = 0):
+    return
+
+def startGame(skt,adrs,ranked):
+    players = adrToPlayer(skt, adrs)
+    print("\nO jogo começou.")
+    
+    i = 1
+    while len(players) > 1:
+        #Anúncio da rodada
+        print("\nRodada",str(i))
+        print("Você tem 10 segundos para enviar um número, ou será enviado um aleatório.")
+
+        #Receber número do jogador
+        num = random.randint(1,9)
+        try:
+            _thread.start_new_thread(tempo,(10,))
+            while True:
+                num = input("\nInsira um número de 1 - 9.\n> ")
+                try:
+                    num = int(num)
+                    if num >= 1 and num <= 9:
+                        break
+                except:
+                    pass
+                
+        except KeyboardInterrupt:            
+            break
+            
+        print("Aguardando tempo de sincronização.")
+                
+        #Enviar o número
+        for player in players:
+            skt.sendto(str(num).encode(),player.adr)
+
+        #Receber números
+        listaRecebidos = []
+        for player in players:
+            listaRecebidos.append(player.adr)
+            
+        somanumeros = num
+
+        try:
+            t = int(5*len(players)+1)
+            _thread.start_new_thread(tempo,(t,))
+            while len(listaRecebidos) > 1:
+                msg, adr = skt.recvfrom(1024)
+                print(msg)
+                print(listaRecebidos)
+                print(adr in listaRecebidos)
+                if adr in listaRecebidos:
+                    somanumeros += num
+                    listaRecebidos.remove(adr)
+        except:
+            print("nao recebi")
+
+        print("fim:", somanumeros)
+                    
+            
+        i = i + 1
+    
 
 def queue(skt,ranked):
     if ranked:
@@ -51,7 +143,7 @@ def queue(skt,ranked):
             print("Nenhum jogador online :(")
             break
         elif cmd == "READY":
-            startGame(msg[1],ranked)
+            startGame(skt,msg[1],ranked)
             break
         else:
             print("Erro na conexão.")
@@ -60,7 +152,7 @@ def queue(skt,ranked):
 if __name__ == "__main__":
     skt = socket(IPV4,UDP)
     skt.settimeout(20)
-
+    
     server = None
     login = None
     pontos = -1

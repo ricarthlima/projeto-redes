@@ -14,6 +14,7 @@ global filaNormalGame
 global filaRanked
 global salasPrivadas
 
+
 class Player:
     def __init__(self,login,senha,pontos,adr=None):
         self.__login = login
