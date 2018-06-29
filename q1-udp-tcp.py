@@ -148,9 +148,9 @@ class ClientTCP:
 class ServerTCP:
     ''' Servidor TCP, as conexões ficam salvas em um dicionário. A porta é a de destino.
     '''
-    def __init__(self, porta = 6000, conMax = 2):
+    def __init__(self, porta = 6000, conMax = 1):
         self.__porta = porta
-        self.__conMax = 2
+        self.__conMax = conMax
         self.__conexoes = {}
         
         self.__socket = socket(IPV4, TCP)
@@ -195,11 +195,12 @@ def cUDP(ip,porta):
     clt = None
     
     if ip == '':
-        clt = ClientUDP()
-    elif porta == '':
-        clt = ClientUDP(ip)
-    else:
-        clt = ClientUDP(ip,porta)
+        ip = "localhost"
+
+    if porta == '':
+        porta = 5000
+
+    clt = ClientUDP(ip,porta)
         
     print("Digite 'quit' para sair")
     
@@ -212,6 +213,7 @@ def cUDP(ip,porta):
 
     clt.send(inp)
     clt.close()
+    return
 
 def sUDP():
     server = None
@@ -220,7 +222,7 @@ def sUDP():
         porta = input("Qual porta deseja reservar? (Vazio para padrão)\n> ")
         if porta.isdigit():
             porta = int(porta)
-            server = ServerUPD(porta)
+            server = ServerUDP(porta)
             break
         elif porta == '':
             server = ServerUDP()
@@ -246,13 +248,14 @@ def sUDP():
 
 def cTCP(ip,porta):
     clt = None
-    
+
     if ip == '':
-        clt = ClientTCP()
-    elif porta == '':
-        clt = ClientTCP(ip)
-    else:
-        clt = ClientTCP(ip,porta)
+        ip = 'localhost'
+
+    if porta == '':
+        porta = 6000
+
+    clt = ClientTCP(ip,porta)
 
     input("Conectar?")
 

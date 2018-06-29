@@ -47,7 +47,7 @@ if __name__ == "__main__":
     client = ClientHTTP()
     lista = []
     
-    print("Bem vindo ao client HTTP\n")
+    print("Bem vindo ao cliente HTTP\n")
     while True:
         entrada = input("1.Conectar-se.\n2.Enviar mensagem\n3.Rever Solicitações\n4.Sair\n> ")
         if entrada == "1":
@@ -74,9 +74,12 @@ if __name__ == "__main__":
         elif entrada == "3":
             #Rever solicitações
             inp = input("Qual solicitação deseja rever?\n> ")
-            if (inp.isdigit) and (int(inp) > 0)  and (int(inp) <= len(lista)):
-                print(lista[int(inp)-1])
-            else:
+            try:
+                if (inp.isdigit) and (int(inp) > 0)  and (int(inp) <= len(lista)):
+                    print(lista[int(inp)-1])
+                else:
+                    print("Solicitação incorreta.")
+            except:
                 print("Solicitação incorreta.")
         elif entrada == "4":
             #Sair

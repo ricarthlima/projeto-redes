@@ -1,6 +1,12 @@
 ﻿# Projeto de Redes
 ## Diário de Bordo
 
+### 27/06/2018
+Durante a elaboração do relatório da questão 01 alguns bugs foram encontrados e corrigidos.
+
+### 27/06/2018
+Q3 - Foi encontrada muita dificuldade em fazer a comunicação P2P entre vários jogadores.
+
 ### 26/06/2018
 Q3 - O servidor já é capaz de gerenciar filas normais e ranqueadas para partidas. O cliente já recebe (em ambos os casos) uma string contendo os endereços dos jogadares que estão na partida (o seu e de seus adversários). O próximo passo para o cliente é o próprio jogo em P2P já que uma vez que ele recebe os endereços não há mais participação do server. Já o server só será alterado agora quando tiver de receber os pontos das partidas ranqueadas.
 
