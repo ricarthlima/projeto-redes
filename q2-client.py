@@ -105,7 +105,7 @@ def cmdGET(skt,carga):
     #Etapa 01 - Cria o diretório
     testDIR()
     nome = inverteBarra(carga[0]).split("/")[-1]
-    file = open(DIR_RECV+"\\"+nome,"wb")
+    
 
     user = ""
     if len(carga) > 1:
@@ -119,7 +119,8 @@ def cmdGET(skt,carga):
     if "05DIROK" == (skt.recv(MSG_BUFFER).decode()):
         tam = int(skt.recv(MSG_BUFFER).decode())
         rec = 0
-        
+
+        file = open(DIR_RECV+"\\"+nome,"wb")
         skt.settimeout(1)                        
         while True:
             try:
@@ -144,7 +145,6 @@ def cmdGET(skt,carga):
 
 def cmdPOST(skt,carga):
     tam = 0
-    
     try:
         #Informação para porcentagem.
         file = open(carga[0],"br")
@@ -155,7 +155,6 @@ def cmdPOST(skt,carga):
         file = open(carga[0],"br")
     except:
         print("Arquivo não encontrado.")
-        return
 
     
     nome = inverteBarra(carga[0]).split("/")[-1]
@@ -221,7 +220,6 @@ def cmdDELETE(skt,carga):
         return True
     else:
         print("Houve um erro ao deletar o arquivo.")
-        return False
 
 def cmdPUT(skt,carga):
     if cmdDELETE(skt,[carga[1]]):

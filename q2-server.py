@@ -1,3 +1,17 @@
+#----------------------------------------------------------------------------------------------#
+# Universidade Federal de Pernambuco -- UFPE (http://www.ufpe.br)
+# Centro de Informática -- CIn (http://www.cin.ufpe.br)
+# Graduandos em Sistemas de Informação
+# IF975 - Redes de Computadores
+#
+# Autores: Ricarth Ruan da Silva Lima e Monalisa Meyrelle de Sousa Silva
+# Email: rrsl@cin.ufpe.br // mmss@cin.ufpe.br
+# Data:	2018-05-23
+#
+# Descrição: Arquivo com classes clientes e servidores para conexões TCP e UDP. Basicamente uma
+# camada acima de uso de sockets. Esse arquivo será usado em todos os outros daqui em diante.
+#----------------------------------------------------------------------------------------------#
+
 from socket import *
 import _thread
 import os
@@ -10,6 +24,10 @@ MSG_BUFFER = 1024
 FILE_BUFFER = 1048576
 
 class BancoDados:
+    ''' Classe Banco de Dados responsável por todo gerenciamento de pastas e ar-
+        quivos do servidor. Ao inicializar um objeto do tipo BancoDados, ele irá
+        buscar  por  um  arquivo "usuarios.txt" e pelas pastas "arqs" e "lists",
+        caso não ache, ele os criará. '''
     def __init__(self):
         self.__cadastrados = {}
 
@@ -39,14 +57,17 @@ class BancoDados:
     def __contains__(self,user):
         return user in self.__cadastrados
 
+    #--Métodos de Memória Secundária--#
     def salvar(self):
-        #Salva no arquivo
+        ''' Sobreescre as informações de usuario.txt com o que há no dicionário.'''
         file = open("usuarios.txt","w")
         for chave in self.__cadastrados:
             file.write(str(chave)+";"+str(self.__cadastrados[chave][1])+"\n")
         file.close()
-        
+
+    #--Métodos de Permissão--#    
     def cadastrar(self,login,senha):
+        ''' Adiciona um novo usuário tanto na memória principal, quanto na secundária.'''
         #Adiciona no banco de dados temporario
         try:
             os.makedirs("./arqs/"+login+"/")            
@@ -60,15 +81,19 @@ class BancoDados:
         self.__cadastrados[login] = (login,senha)
         self.salvar()
 
-    def compartilhar(self, loginOri, loginDest, arq):
-        #Compartilhar um arquivo
-        return
-
     def autenticar(self,login,senha):
+        ''' Verifica se a senha passada por parâmetro bate com a cadastrada. '''
         return senha == self.__cadastrados[login][1]
 
+    ''' LEGADO
+    def compartilhar(self, loginOri, loginDest, arq):
+        #Compartilhar um arquivo
+        return'''
+
+    
+    #--Métodos de apoio aos comandos--#
     def listarDir(self,login):
-        #Retorna uma lista com os diretorios do usuario
+        '''Retorna uma lista com os diretorios do usuario.'''
         if login in self.__cadastrados:
             file = open("./lists/"+login+".txt","r")
             texto = file.read()
@@ -79,6 +104,8 @@ class BancoDados:
             return False
 
     def deletarDir(self,login,delLinha):
+        ''' Dado uma linha de diretório, deleta-a do diretório do login. Se ela
+            se ela existir. '''
         linhas = self.listarDir(login)
         file = open("./lists/"+login+".txt","w")
         for linha in linhas:
@@ -87,6 +114,7 @@ class BancoDados:
         file.close()
 
     def appendDir(self,login,diretorio,orig=""):
+        ''' Adiciona uma nova linha de diretório no txt/BD do usuário. '''
         if orig != "":
             diretorio = "*" + diretorio + " (" + orig + ")"
         
@@ -95,7 +123,8 @@ class BancoDados:
         file.close()
         self.ordenarDir(login)
 
-    def ordenarDir(self, login):        
+    def ordenarDir(self, login):
+        ''' Ordena o arquivo txt/BD do usuário para melhor visualização.'''
         linhas = sorted(self.listarDir(login))
         
         file = open("./lists/"+login+".txt","w")
@@ -107,7 +136,9 @@ class BancoDados:
 
 #FUNÇÕES DA REDE
 def newConnectionChecker(skt,bd):    
-    #Thread para adicionar 
+    ''' Essa thread fica aguardando novos pedidos de conexão, faz a verificação
+        de login e senha e se tudo estiver ok, inicializa uma nova thread para
+        fazer a comunicação com os clientes e receber os comandos.'''
     while True:        
         skt.listen(10)
         
@@ -127,29 +158,32 @@ def newConnectionChecker(skt,bd):
         adr = "[" + login + ", " + str(list(adr)[:-1])[1:]
         auth(login,senha,conexao,adr,bd)
 
-def auth(login,senha,conexao,adr,bd):    
-        if login not in bd:         #Verifica se o login já foi cadastrado, caso não:
-            bd.cadastrar(login,senha)
-            bd.salvar()
-            print("NCC - Login de",str(adr),"não consta no banco de dados, criado.")
-            print("NCC - Autenticação",str(adr),"bem sucedida, aguardando comandos.")
+def auth(login,senha,conexao,adr,bd):
+    ''' Executa a autenticação em si. '''
+    if login not in bd:         #Verifica se o login já foi cadastrado, caso não:
+        bd.cadastrar(login,senha)
+        bd.salvar()
+        print("NCC - Login de",str(adr),"não consta no banco de dados, criado.")
+        print("NCC - Autenticação",str(adr),"bem sucedida, aguardando comandos.")
+        conexao.send("03AUTHOK".encode())
+        chamaCMD(conexao,adr,login,bd)
+    else:   #Caso sim
+        if bd.autenticar(login,senha):  #Verifica se a senha bate com a cadastrada
+            print("NCC - Autenticação com",str(adr),"bem sucedida, aguardando comandos.")
             conexao.send("03AUTHOK".encode())
             chamaCMD(conexao,adr,login,bd)
-        else:   #Caso sim
-            if bd.autenticar(login,senha):  #Verifica se a senha bate com a cadastrada
-                print("NCC - Autenticação com",str(adr),"bem sucedida, aguardando comandos.")
-                conexao.send("03AUTHOK".encode())
-                chamaCMD(conexao,adr,login,bd)
-            else:                           #Caso não
-                conexao.send("03AUTHFAIL".encode())
-                conexao.close()
-                print("NCC - Autenticação com",str(adr),"falhou, desconectado.")     
+        else:                           #Caso não
+            conexao.send("03AUTHFAIL".encode())
+            conexao.close()
+            print("NCC - Autenticação com",str(adr),"falhou, desconectado.")     
         
 def chamaCMD(conexao,adr,login,bd):
     _thread.start_new_thread(newCommandChecker,(conexao,adr,login,bd)) #Chama a thread que vai ficar ouvindo essa conexao
     
 def newCommandChecker(conexao,adr,login,bd):
-    #Thread para receber comandos
+    ''' Nessa thread, ela recebe uma conexão com os clientes e fica ouvindo os
+        comandos. A depender do comando, ela chama cada função responsável por
+        tratá-lo.'''
     while True:
         msg = conexao.recv(MSG_BUFFER).decode()
             
@@ -190,6 +224,7 @@ def newCommandChecker(conexao,adr,login,bd):
             print("CMD - Comando incorreto recebido de",adr)
 
 def cmdLS(conexao,adr,login,bd):
+    ''' Comando listar, enviar para o cliente uma lista com seus arquivos.'''
     try:
         file = open("./lists/"+login+".txt","r")
         texto = file.read()
@@ -199,6 +234,7 @@ def cmdLS(conexao,adr,login,bd):
     conexao.send(texto.encode())
 
 def cmdGET(conexao,adr,login,bd,carga):
+    ''' Comando GET, envia o arquivo solicitado para o cliente.'''
     #Etapa 01 - Recebe o diretório e verifica se ele é válido
     cmp = False
     diretorio = carga[0]
@@ -250,7 +286,7 @@ def cmdGET(conexao,adr,login,bd,carga):
         conexao.send("05DIRFAIL".encode())
     
 def cmdPOST(conexao,adr,login,bd,carga):
-
+    ''' Comando POST, recebe um arquivo do cliente e o grava na localização correta.'''
     #Etapa 01 - Receber nome 
     nome = carga[0]
     conexao.send("05NAMEOK".encode())
@@ -283,6 +319,7 @@ def cmdPOST(conexao,adr,login,bd,carga):
     else:
         conexao.send("05DUPL".encode())
         print("CMD - Tentativa de substituição de arquivo.",adr)
+        return
 
     
     bd.appendDir(login,diretorio+nome)
@@ -291,6 +328,7 @@ def cmdPOST(conexao,adr,login,bd,carga):
     conexao.send("05ARQOK".encode())
     
 def cmdDELETE(conexao,adr,login,bd,carga):
+    ''' Comando remover, recebe do cliente um diretório e o exclue. Se existir.'''
     if carga[0] in bd.listarDir(login):
         os.remove("./arqs/"+login+carga[0])
         print("CMD - Arquivo deletado.",adr)
@@ -300,8 +338,10 @@ def cmdDELETE(conexao,adr,login,bd,carga):
         return True
     else:
         conexao.send("05DELFAIL".encode())
+        return False
 
 def cmdMKDIR(conexao,adr,login,bd,carga):
+    ''' Comando para criar pasta. Cria uma nova pasta na pasta do cliente.'''
     if carga[0] in bd.listarDir(login):
         conexao.send("05DIREXISTS".encode())
     else:
@@ -313,6 +353,7 @@ def cmdMKDIR(conexao,adr,login,bd,carga):
             conexao.send("05MKDIRFAIL".encode())
 
 def cmdSHARE(conexao,adr,login,bd,carga):
+    ''' Comando compartilhar, compartilha um arquivo com outro usuário.'''
     print(carga[0],carga[1])
     
     if carga[0] in bd.listarDir(login) and (carga[1] in bd):
@@ -329,6 +370,7 @@ def cmdSHARE(conexao,adr,login,bd,carga):
         
 
 def cmdQUIT(conexao):
+    ''' Comando sair, envia uma mensagem de adeus e encerra a conexão.'''
     conexao.send("END".encode())
     conexao.close()
 
@@ -341,7 +383,7 @@ def main():
     skt.bind(('',6000))     #Binda a porta
     
     _thread.start_new_thread(newConnectionChecker,(skt,bd)) #Inicia a Thread para ouvir novas conexões
-    print("CloudRain - Servidor\nOnline...")
+    print("[CloudRain] - Servidor\nSTATUS: Online.\nAguardando conexões...")
     while True:
         continue
 
