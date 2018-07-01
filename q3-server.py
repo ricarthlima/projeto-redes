@@ -1,3 +1,16 @@
+#----------------------------------------------------------------------------------------------#
+# Universidade Federal de Pernambuco -- UFPE (http://www.ufpe.br)
+# Centro de Informática -- CIn (http://www.cin.ufpe.br)
+# Graduandos em Sistemas de Informação
+# IF975 - Redes de Computadores
+#
+# Autores: Ricarth Ruan da Silva Lima e Monalisa Meyrelle de Sousa Silva
+# Email: rrsl@cin.ufpe.br // mmss@cin.ufpe.br
+# Data:	2018-05-28
+#
+# Descrição: Gerenciador de partidas.
+#----------------------------------------------------------------------------------------------#
+
 from socket import *
 import time
 import _thread

@@ -1,3 +1,16 @@
+#----------------------------------------------------------------------------------------------#
+# Universidade Federal de Pernambuco -- UFPE (http://www.ufpe.br)
+# Centro de Informática -- CIn (http://www.cin.ufpe.br)
+# Graduandos em Sistemas de Informação
+# IF975 - Redes de Computadores
+#
+# Autores: Ricarth Ruan da Silva Lima e Monalisa Meyrelle de Sousa Silva
+# Email: rrsl@cin.ufpe.br // mmss@cin.ufpe.br
+# Data:	2018-05-28
+#
+# Descrição: Jogo P2P de Zerinho ou Um Americano.
+#----------------------------------------------------------------------------------------------#
+
 from socket import *
 import time
 import random
@@ -67,6 +80,7 @@ def endGame(skt,ranked = False, pontos = 0):
     return
 
 def startGame(skt,adrs,ranked):
+    print(adrs)
     players = adrToPlayer(skt, adrs)
     print("\nO jogo começou.")
     
