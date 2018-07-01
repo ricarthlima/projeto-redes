@@ -6,10 +6,9 @@
 #
 # Autores: Ricarth Ruan da Silva Lima e Monalisa Meyrelle de Sousa Silva
 # Email: rrsl@cin.ufpe.br // mmss@cin.ufpe.br
-# Data:	2018-05-23
+# Data:	2018-05-28
 #
-# Descrição: Arquivo com classes clientes e servidores para conexões TCP e UDP. Basicamente uma
-# camada acima de uso de sockets. Esse arquivo será usado em todos os outros daqui em diante.
+# Descrição: Servidor multithread responsável por gerenciar o arquivo dos clientes.
 #----------------------------------------------------------------------------------------------#
 
 from socket import *

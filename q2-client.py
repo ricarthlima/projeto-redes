@@ -1,3 +1,16 @@
+#----------------------------------------------------------------------------------------------#
+# Universidade Federal de Pernambuco -- UFPE (http://www.ufpe.br)
+# Centro de Informática -- CIn (http://www.cin.ufpe.br)
+# Graduandos em Sistemas de Informação
+# IF975 - Redes de Computadores
+#
+# Autores: Ricarth Ruan da Silva Lima e Monalisa Meyrelle de Sousa Silva
+# Email: rrsl@cin.ufpe.br // mmss@cin.ufpe.br
+# Data:	2018-05-28
+#
+# Descrição: Cliente que se comunicam com servidor de arquivos.
+#----------------------------------------------------------------------------------------------#
+
 from socket import *
 import os
 
@@ -256,7 +269,7 @@ def cmdHELP():
 #MAIN
 def main():
     #Splash Text
-    print("CloudRain - Client")
+    print("[CloudRain] - Client")
 
     while True:
         #Conexão
