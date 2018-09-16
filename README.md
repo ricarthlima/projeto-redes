@@ -1,5 +1,6 @@
 ﻿# Projeto de Redes
 ## Diário de Bordo
+![iconeredes](http://www.computeknica.com.br/wp-content/uploads/2015/02/network-infrastructure.jpg)
 
 ### 27/06/2018
 Durante a elaboração do relatório da questão 01 alguns bugs foram encontrados e corrigidos.
